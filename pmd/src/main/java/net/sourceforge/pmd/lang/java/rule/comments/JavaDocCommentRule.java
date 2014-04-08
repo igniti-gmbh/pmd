@@ -7,14 +7,23 @@ import net.sourceforge.pmd.lang.java.ast.ASTFieldDeclaration;
 import net.sourceforge.pmd.lang.java.ast.ASTMethodDeclaration;
 import net.sourceforge.pmd.lang.java.ast.AbstractJavaAccessNode;
 import net.sourceforge.pmd.lang.java.javadoc.checker.CommentChecker;
+import net.sourceforge.pmd.lang.rule.properties.IntegerProperty;
 
 /**
  *
  * This class parses and validates JavaDoc.
  *
  */
-public class CommentStandards extends AbstractCommentRule {
+public class JavaDocCommentRule extends AbstractCommentRule {
+	
+	public static final IntegerProperty MINIMUM_CONTENT_LENGTH_DESCRIPTOR = new IntegerProperty(
+			"minimumContentLength", "The minimum number of actual comment characters",
+			0, 10000, 10, 5.0f);
 
+	public JavaDocCommentRule() {		
+		definePropertyDescriptor(MINIMUM_CONTENT_LENGTH_DESCRIPTOR);
+	}
+	
     @Override
     public Object visit(ASTClassOrInterfaceDeclaration node, Object data) {
 
@@ -57,6 +66,7 @@ public class CommentStandards extends AbstractCommentRule {
         }
 
         CommentChecker checker = new CommentChecker(this, node, data);
+        checker.setMinimumCommentLength(getProperty(MINIMUM_CONTENT_LENGTH_DESCRIPTOR).intValue());
         checker.check();
     }
 }

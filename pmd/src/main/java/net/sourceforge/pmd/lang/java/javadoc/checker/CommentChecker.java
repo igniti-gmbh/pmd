@@ -20,8 +20,8 @@ import net.sourceforge.pmd.lang.java.ast.ASTTypeParameter;
 import net.sourceforge.pmd.lang.java.ast.ASTTypeParameters;
 import net.sourceforge.pmd.lang.java.ast.ASTUtil;
 import net.sourceforge.pmd.lang.java.ast.AbstractJavaAccessNode;
-import net.sourceforge.pmd.lang.java.javadoc.parser.JDocParser;
-import net.sourceforge.pmd.lang.java.javadoc.parser.JDocParserCallback;
+import net.sourceforge.pmd.lang.java.javadoc.parser.JavaDocParser;
+import net.sourceforge.pmd.lang.java.javadoc.parser.JavaDocParserCallback;
 import net.sourceforge.pmd.lang.java.rule.AbstractJavaRule;
 
 /**
@@ -43,11 +43,11 @@ import net.sourceforge.pmd.lang.java.rule.AbstractJavaRule;
  * </ul>
  *
  */
-public class CommentChecker implements JDocParserCallback {
+public class CommentChecker implements JavaDocParserCallback {
 
-    private static final int MINIMUM_COMMENT_LENGTH = 10;
+    private int minimumCommentLength = 10;
 
-    private boolean preprocessingStep = true;
+	private boolean preprocessingStep = true;
     private boolean returnDocumented;
 
     private boolean inheritDocPresent;
@@ -98,6 +98,17 @@ public class CommentChecker implements JDocParserCallback {
         collectParameterNames();
         collectThrows();
     }
+
+    /** 
+     * 
+     * <p>Sets the minimum length of a comment.</p>
+     * 
+     * @param minimumCommentLength The minimal number of actual text characters expected to be in the comment.
+     * 
+     */
+    public void setMinimumCommentLength(int minimumCommentLength) {
+		this.minimumCommentLength = minimumCommentLength;
+	}
 
     /**
      *
@@ -246,8 +257,8 @@ public class CommentChecker implements JDocParserCallback {
         // the base class will be validated independently.
         if (!inheritDocPresent && !overrideMethod) {
 
-            if (actualCommentCharacterCount < MINIMUM_COMMENT_LENGTH) {
-                reporter.addViolation("Comment is too short: need " + MINIMUM_COMMENT_LENGTH + " actual text characters, got " +
+            if (actualCommentCharacterCount < minimumCommentLength) {
+                reporter.addViolation("Comment is too short: need " + minimumCommentLength + " actual text characters, got " +
                         actualCommentCharacterCount, commentLine);
             }
 
@@ -557,7 +568,7 @@ public class CommentChecker implements JDocParserCallback {
     private void runParser() {
 
         BufferedReader reader = new BufferedReader(new StringReader(node.comment().getImage()));
-        JDocParser parser = new JDocParser(reader, this);
+        JavaDocParser parser = new JavaDocParser(reader, this);
         try {
             parser.parse();
         } catch (IOException e) {

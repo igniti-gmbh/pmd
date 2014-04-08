@@ -2,12 +2,12 @@ package net.sourceforge.pmd.lang.java.javadoc.parser;
 
 /**
  *
- * <p>Callback interface for the {@link JDocParser}.</p>
+ * <p>Callback interface for the {@link JavaDocParser}.</p>
  *
  * <p>Clients implement this interface if they wish to be informed of parsing events.</p>
  *
  */
-public interface JDocParserCallback {
+public interface JavaDocParserCallback {
 
     /**
      *

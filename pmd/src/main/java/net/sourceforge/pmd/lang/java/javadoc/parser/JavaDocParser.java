@@ -7,16 +7,16 @@ import java.io.IOException;
  *
  * <p>A rudimentary event-driven JavaDoc parser.</p>
  *
- * <p>Extracts tags from JavaDoc source and passes them to a {@link JDocParserCallback}.</p>
+ * <p>Extracts tags from JavaDoc source and passes them to a {@link JavaDocParserCallback}.</p>
  *
  */
-public class JDocParser {
+public class JavaDocParser {
 
     private int currentLine;
 
     private BufferedReader reader;
 
-    private JDocParserCallback callback;
+    private JavaDocParserCallback callback;
 
     private StringBuilder text = new StringBuilder(); // NOPMD: the JDocParser is not kept around for a long time
 
@@ -25,10 +25,10 @@ public class JDocParser {
      * <p>Initializes the parser. Use #parse() to start the parsing process.</p>
      *
      * @param reader The {@link BufferedReader} to read text from.
-     * @param callback The {@link JDocParserCallback} used to notify clients of parsed text / tokens.
+     * @param callback The {@link JavaDocParserCallback} used to notify clients of parsed text / tokens.
      *
      */
-    public JDocParser(BufferedReader reader, JDocParserCallback callback) {
+    public JavaDocParser(BufferedReader reader, JavaDocParserCallback callback) {
         this.reader = reader;
         this.callback = callback;
     }
