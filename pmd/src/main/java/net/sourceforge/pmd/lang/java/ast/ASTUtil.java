@@ -687,7 +687,7 @@ public final class ASTUtil {
      */
     public static Set<String> getNodeImports(AbstractJavaNode node) {
 
-        Set<String> imports = new HashSet<>();
+        Set<String> imports = new HashSet<String>();
         ASTCompilationUnit unit = node.getFirstParentOfType(ASTCompilationUnit.class);
         for (int i=0; i<unit.jjtGetNumChildren(); i++) {
 
@@ -990,6 +990,17 @@ public final class ASTUtil {
         if (node instanceof ASTClassOrInterfaceType) {
 
             writer.print(" type: " + ((ASTClassOrInterfaceType)node).getType() + " image: " + node.getImage());
+        }
+        
+        if (node instanceof AbstractJavaNode) {
+        	Comment comment = ((AbstractJavaNode)node).comment();
+        	if (comment != null) {
+        		String text =  comment.getImage().replace('\n', ' ');
+        		if (text.length() > 20) {
+        			text = text.substring(0, 20) + " ...";
+        		}
+        		writer.print(" comment '" + text + "'");
+        	}
         }
 
         writer.println();

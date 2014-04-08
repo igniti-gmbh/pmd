@@ -22,7 +22,7 @@ public class CommentTypeResolver {
 
     private String currentPackageName;
     private String currentOuterClassName;
-    private Set<String> imports = new HashSet<>();
+    private Set<String> imports = new HashSet<String>();
 
     /**
      *

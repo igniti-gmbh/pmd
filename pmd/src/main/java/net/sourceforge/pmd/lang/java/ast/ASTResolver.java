@@ -162,19 +162,42 @@ public class ASTResolver {
 
     private static Class<?> lookupPrimitiveType(String typeRef, boolean arrayType) {
 
-        switch (typeRef) {
-
-            case "short": return arrayType ? short[].class : short.class; // NOPMD
-            case "int": return arrayType ? int[].class : int.class;
-            case "long": return arrayType ? long[].class : long.class;
-            case "double": return arrayType ? double[].class : double.class;
-            case "float": return arrayType ? float[].class : float.class;
-            case "boolean": return arrayType ? boolean[].class : boolean.class;
-            case "char": return arrayType ? char[].class : char.class;
-            case "byte": return arrayType ? byte[].class : byte.class;
-            case "void": return void.class;
-            default: break;
-        }
+    	if ("short".equals(typeRef)) {
+        	return arrayType ? short[].class : short.class; // NOPMD    		
+    	}
+    	
+    	if ("int".equals(typeRef)) {
+        	return arrayType ? int[].class : int.class;    		
+    	}
+    	
+    	if ("long".equals(typeRef)) {
+        	return arrayType ? long[].class : long.class;    		
+    	}
+    	
+    	if ("double".equals(typeRef)) {
+        	return arrayType ? double[].class : double.class;    		
+    	}
+    	
+    	if ("float".equals(typeRef)) {
+        	return arrayType ? float[].class : float.class;    		
+    	}
+    	
+    	if ("boolean".equals(typeRef)) {
+        	return arrayType ? boolean[].class : boolean.class;    		
+    	}
+    	
+    	if ("char".equals(typeRef)) {
+        	return arrayType ? char[].class : char.class;    		
+    	}
+    	
+    	if ("byte".equals(typeRef)) {
+        	return arrayType ? byte[].class : byte.class;    		
+    	}
+    	
+    	if ("void".equals(typeRef)) {
+        	return void.class;    		
+    	}
+    	
         return null;
     }
 

@@ -35,7 +35,7 @@ public class CommentParameterListResolver {
      */
     public Class<?>[] resolveParameterTypes(String paramList, int tagLine) {
 
-        List<Class<?>> paramTypes = new LinkedList<>();
+        List<Class<?>> paramTypes = new LinkedList<Class<?>>();
 
         String typeName;
         CommentParameterListParser parser = new CommentParameterListParser(paramList);

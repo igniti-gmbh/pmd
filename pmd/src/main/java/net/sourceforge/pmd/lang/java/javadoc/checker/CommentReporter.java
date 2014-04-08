@@ -1,4 +1,4 @@
-package de.deutschepost.postcard.pmd.util.comment;
+package net.sourceforge.pmd.lang.java.javadoc.checker;
 
 /**
  *
