@@ -60,9 +60,8 @@ public class CommentChecker implements JavaDocParserCallback {
 
     private final CommentTypeResolver typeResolver;
     private final CommentParameterListResolver parameterListResolver;
-
     private final CommentReporter reporter;
-    private final CommentRefChecker refChecker;
+    private final CommentTagChecker tagChecker;
 
     private final AbstractJavaRule rule;
     private final AbstractJavaAccessNode node;
@@ -95,7 +94,7 @@ public class CommentChecker implements JavaDocParserCallback {
         this.reporter = new CommentReporter(this);
         this.typeResolver = new CommentTypeResolver(this);
         this.parameterListResolver = new CommentParameterListResolver(this);
-        this.refChecker =  new CommentRefChecker(this);
+        this.tagChecker = new CommentTagChecker(this);
 
         if (node instanceof ASTMethodDeclaration) {
             this.overrideMethod = ASTUtil.isOverrideMethod((ASTMethodDeclaration)node);
@@ -128,7 +127,6 @@ public class CommentChecker implements JavaDocParserCallback {
     public void check() {
 
         if (checkPreconditions()) {
-
             runParser();
             preprocessingStep = false;
             runParser();
@@ -201,6 +199,34 @@ public class CommentChecker implements JavaDocParserCallback {
         return data;
     }
 
+	public boolean isCheckReferences() {
+		return checkReferences;
+	}
+
+	public boolean isOverrideMethod() {
+		return overrideMethod;
+	}
+
+	public List<String> getParameterNames() {
+		return parameterNames;
+	}
+
+	public void addDocumentedParameter(String paramName) {		
+		documentedParameters.add(paramName);
+	}
+
+	public void addDocumentedThrows(Class<?> ref) {
+		documentedThrows.add(ref);
+	}
+
+	public List<Class<?>> getThrowsDecls() {
+		return throwsDecls;
+	}
+
+	public void markReturnDocumented() {
+		returnDocumented = true;
+	}
+
     @Override
     public void onCommentEnter(int commentLine) {
         this.commentLine = commentLine;
@@ -213,40 +239,40 @@ public class CommentChecker implements JavaDocParserCallback {
 
             if ("inheritDoc".equals(tagName)) {
                 inheritDocPresent = true;
-                checkInheritDoc(tagLine);
+                tagChecker.checkInheritDoc(tagLine);
             }
 
         } else {
 
             if ("author".equals(tagName)) {
-                checkAuthorTag(tagLine, tagArg);
+            	tagChecker.checkAuthorTag(tagLine, tagArg);
             } else
             if ("version".equals(tagName)) {
-                checkVersionTag(tagLine, tagArg);
+            	tagChecker.checkVersionTag(tagLine, tagArg);
             } else
             if ("since".equals(tagName)) {
-                checkSinceTag(tagLine, tagArg);
+            	tagChecker.checkSinceTag(tagLine, tagArg);
             } else
             if ("return".equals(tagName)) {
-                checkReturnTag(tagLine, tagArg);
+            	tagChecker.checkReturnTag(tagLine, tagArg);
             } else
             if ("param".equals(tagName)) {
-                checkParamTag(tagLine, tagArg);
+            	tagChecker.checkParamTag(tagLine, tagArg);
             } else
             if ("link".equals(tagName)) {
-                checkLinkTag(tagLine, tagArg);
+            	tagChecker.checkLinkTag(tagLine, tagArg);
             } else
             if ("value".equals(tagName)) {
-                checkValueTag(tagLine, tagArg);
+            	tagChecker.checkValueTag(tagLine, tagArg);
             } else
             if ("see".equals(tagName)) {
-                checkSeeTag(tagLine, tagArg);
+            	tagChecker.checkSeeTag(tagLine, tagArg);
             } else
             if ("throws".equals(tagName) || "exception".equals(tagName)) {
-                checkThrowsTag(tagLine, tagName, tagArg);
+            	tagChecker.checkThrowsTag(tagLine, tagName, tagArg);
             } else
             if ("deprecated".equals(tagName)) {
-                checkDeprecatedTag(tagLine, tagArg);
+            	tagChecker.checkDeprecatedTag(tagLine, tagArg);
             }
         }
     }
@@ -295,271 +321,6 @@ public class CommentChecker implements JavaDocParserCallback {
                 }
             }
         }
-    }
-
-    private boolean checkInheritDoc(int tagLine) {
-
-        if (node instanceof ASTConstructorDeclaration) {
-            return true;
-        }
-
-        if (node instanceof ASTMethodDeclaration && !overrideMethod) {
-            reporter.addViolation("@inheritDoc may not be specified on non-override methods", tagLine);
-            return false;
-        }
-
-        if (node instanceof ASTClassOrInterfaceDeclaration) {
-            ASTClassOrInterfaceDeclaration classDecl = (ASTClassOrInterfaceDeclaration)node;
-            if (classDecl.getFirstChildOfType(ASTExtendsList.class) == null &&
-                classDecl.getFirstChildOfType(ASTImplementsList.class) == null) {
-                reporter.addViolation("@inheritDoc may not be specified on classes without a super class or a class implementing interfaces", tagLine);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void checkLinkTag(int tagLine, String tagArg) {
-
-    	if (tagArg.trim().isEmpty()) {
-    		reporter.addViolation("Malformed @link tag, must at least specify the linked type.", tagLine);
-    		return;
-    	}	
-
-        countActualCommentCharacters(tagArg);
-
-    	if (checkReferences) {
-    		refChecker.check(tagLine, "@link", tagArg);
-    	}
-    }
-
-    private void checkSeeTag(int tagLine, String tagArg) {
-		
-        if (!(node instanceof ASTClassOrInterfaceDeclaration || node instanceof ASTEnumDeclaration || node instanceof ASTFieldDeclaration || node instanceof ASTMethodDeclaration || node instanceof ASTConstructorDeclaration)) { 
-            reporter.addViolation("Illegal @see tag, may only be specified on classes, interfaces, enums, fields, constructors and methods", tagLine);
-            return;
-        }
-
-    	if (tagArg.trim().isEmpty()) {
-    		reporter.addViolation("Malformed @see tag, must at least specify the linked type.", tagLine);
-    		return;
-    	}	
-    	
-        countActualCommentCharacters(tagArg);
-
-    	if (checkReferences) {
-    		refChecker.check(tagLine, "@see", tagArg);
-    	}
-    }
-
-    private void checkAuthorTag(int tagLine, String tagArg) {
-    	
-        if (!(node instanceof ASTClassOrInterfaceDeclaration || node instanceof ASTEnumDeclaration)) { 
-            reporter.addViolation("Illegal @author tag, may only be specified on classes, interfaces and enums", tagLine);
-            return;
-        }
-
-    	if (tagArg.trim().isEmpty()) {
-    		reporter.addViolation("Malformed @author tag,  must have a author name.", tagLine);
-    		return;
-    	}
-
-        countActualCommentCharacters(tagArg);
-	}
-
-	private void checkValueTag(int tagLine, String tagArg) {
-		
-    	if (tagArg.trim().isEmpty()) {
-    		reporter.addViolation("Malformed @value tag, must have a JavaDoc reference.", tagLine);
-    		return;
-    	}
-    	
-        countActualCommentCharacters(tagArg);
-
-    	if (checkReferences) {
-    		// TODO: this should only allow references to static fields
-    		refChecker.check(tagLine, "@value", tagArg);
-    	}
-	}
-
-	private void checkSinceTag(int tagLine, String tagArg) {
-		
-        if (!(node instanceof ASTClassOrInterfaceDeclaration || node instanceof ASTEnumDeclaration || node instanceof ASTFieldDeclaration || node instanceof ASTMethodDeclaration || node instanceof ASTConstructorDeclaration)) { 
-            reporter.addViolation("Illegal @since tag, may only be specified on classes, interfaces, enums, fields, constructors and methods", tagLine);
-            return;
-        }
-
-    	if (tagArg.trim().isEmpty()) {
-    		reporter.addViolation("Malformed @since tag, must have text.", tagLine);
-    		return;
-    	}	
-    	
-        countActualCommentCharacters(tagArg);
-	}
-
-	private void checkVersionTag(int tagLine, String tagArg) {
-    	
-        if (!(node instanceof ASTClassOrInterfaceDeclaration || node instanceof ASTEnumDeclaration)) { 
-            reporter.addViolation("Illegal @version tag, may only be specified on classes, interfaces and enums", tagLine);
-            return;
-        }
-
-    	if (tagArg.trim().isEmpty()) {
-    		reporter.addViolation("Malformed @version tag,  must have a version specification.", tagLine);
-    		return;
-    	}		
-
-        countActualCommentCharacters(tagArg);
-	}
-
-    private void checkReturnTag(int tagLine, String tagArg) {
-
-        returnDocumented = true;
-
-        if (!(node instanceof ASTMethodDeclaration)) {
-            reporter.addViolation("Illegal @return tag, may only be specified on methods", tagLine);
-            return;
-        }
-
-        ASTMethodDeclaration method = (ASTMethodDeclaration)node;
-        if (method.getResultType().isVoid()) {
-            reporter.addViolation("Illegal @return tag, may not be specified on void methods", tagLine);
-            return;
-        }
-
-        String trimmed = tagArg.trim();
-        if (trimmed.isEmpty()) {
-            reporter.addReturnMalformedViolation(tagLine);
-            return;
-        }
-
-        countActualCommentCharacters(tagArg);
-    }
-
-    private void checkParamTag(int tagLine, String text) {
-
-        if (!checkParamTagAllowedInContext(tagLine, text)) {
-            return;
-        }
-
-        String trimmed = text.trim();
-        if (trimmed.isEmpty()) {
-            reporter.addParameterMalformedViolation(tagLine, trimmed);
-            return;
-        }
-
-        int paramEnd = trimmed.indexOf(' ');
-        if (paramEnd <= 0) {
-            reporter.addParameterMalformedViolation(tagLine, trimmed);
-            return;
-        }
-
-        int descStart = trimmed.indexOf(' ', paramEnd);
-        if (descStart <= 0) {
-            reporter.addParameterMalformedViolation(tagLine, trimmed);
-            return;
-        }
-
-        countActualCommentCharacters(text);
-
-        String paramName = trimmed.substring(0, paramEnd);
-
-        checkParameterExists(tagLine, paramName);
-    }
-
-    private boolean checkParamTagAllowedInContext(int tagLine, String tagText) {
-
-
-        if (node instanceof ASTMethodDeclaration || node instanceof ASTConstructorDeclaration) {
-            // ctor and method are always legal
-            return true;
-        }
-
-        if (node instanceof ASTClassOrInterfaceDeclaration) {
-
-            // only legal for parameterized class / interface
-            ASTClassOrInterfaceDeclaration classDecl = (ASTClassOrInterfaceDeclaration)node;
-            if (classDecl.getFirstChildOfType(ASTTypeParameters.class) != null) {
-                return true;
-            }
-        }
-
-        reporter.addViolation("Illegal @param tag '" + tagText + "', may only be specified on methods and constructors or generic types", tagLine);
-        return false;
-    }
-
-    private void checkParameterExists(int tagLine, String paramName) {
-
-        for (String name : parameterNames) {
-            if (paramName.equals(name)) {
-                // found our parameter
-                documentedParameters.add(paramName);
-                return;
-            }
-        }
-
-        reporter.addViolation("Parameter '" + paramName + "' specified in JavaDoc is not a parameter or generic type of the documented item", tagLine);
-    }
-
-    private void checkThrowsTag(int tagLine, String tagName, String tagText) {
-
-        if (!(node instanceof ASTMethodDeclaration) && !(node instanceof ASTConstructorDeclaration)) {
-            reporter.addViolation("Illegal " + tagName + " tag, may only be specified on methods and constructors", tagLine);
-            return;
-        }
-
-        if (tagText.trim().isEmpty()) {
-            reporter.addViolation("Malformed " + tagName + " tag, must at least specify the exception class", tagLine);
-            return;
-        }
-
-        countActualCommentCharacters(tagText);
-
-        int descStart = tagText.indexOf(' ');
-        String exceptionName = (descStart != -1) ? tagText.substring(0, descStart) : tagText;
-
-        if (!checkThrowsTypeExists(tagLine, exceptionName)) {
-        	return;
-        }
-
-        if (checkReferences) {
-        	refChecker.check(tagLine, tagName, tagText);
-        }
-    }
-
-    private boolean checkThrowsTypeExists(int tagLine, String exceptionName) {
-
-        Class<?> ref = typeResolver.resolveType(exceptionName);
-        if (ref == null) {
-            reporter.addViolation("Exception '" + exceptionName + "' could not be resolved", tagLine);
-            return false;
-        }
-
-        if (RuntimeException.class.isAssignableFrom(ref)) {
-            // RuntimeException is implicit and doesn't have to be in the throws list
-            documentedThrows.add(ref);
-            return true;
-        }
-
-        for (Class<?> clazz : throwsDecls) {
-            if (clazz == ref) { // NOPMD identity compare is intended
-                documentedThrows.add(clazz);
-                return true;
-            }
-        }
-
-        reporter.addViolation("Exception '" + exceptionName + "' specified in JavaDoc is not thrown by the documented method", tagLine);
-        return false;
-    }
-
-    private void checkDeprecatedTag(int tagLine, String tagArg) {
-
-        if (tagArg.trim().isEmpty()) {
-            reporter.addViolation("Malformed @deprecated tag, must have a description", tagLine);
-            return;
-        }
-        
-        countActualCommentCharacters(tagArg);
     }
 
     /**

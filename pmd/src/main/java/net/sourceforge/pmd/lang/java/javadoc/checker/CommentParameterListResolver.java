@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  *
- * <p>This class resolves JavaDoc ref parameter types.</p>
+ * <p>This class resolves types in JavaDoc references.</p>
  *
  * @author Igniti GmbH <igniti-open@igniti.de>
  * @since Apr 9, 2014

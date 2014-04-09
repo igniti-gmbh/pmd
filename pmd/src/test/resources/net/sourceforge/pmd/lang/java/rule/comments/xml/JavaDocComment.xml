@@ -667,5 +667,5 @@ public class JavaDocTestClass {
         <expected-problems>1</expected-problems>
         <code-ref id="method-level-comment"/>    
     </test-code>
-              
+           
 </test-data>
