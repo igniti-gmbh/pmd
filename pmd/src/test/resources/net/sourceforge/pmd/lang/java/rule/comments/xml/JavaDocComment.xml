@@ -178,9 +178,19 @@ Author tag.
 package net.sourceforge.pmd.lang.java.rule.comments;
 
 /**
- * @author The author
+ * @author The author.
  */
 public class JavaDocTestClass {
+	
+	/**
+	 * @author The author.
+	 */
+	public enum Enum {}
+	
+	/**
+	 * @author The author.
+	 */
+	public interface Interface {}	
 }
      ]]></code>      
     </test-code>
@@ -199,6 +209,31 @@ package net.sourceforge.pmd.lang.java.rule.comments;
  * @author
  */
 public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                                   
+    <test-code>
+        <description><![CDATA[
+Illegal author tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+public class JavaDocTestClass {
+
+	/**
+  	 * @author Illegal author.
+     */
+	public static final int AUTHOR = 10;
+	
+	/**
+  	 * @author Illegal author.
+     */
+	public void method() {}	
 }
      ]]></code>      
     </test-code>
