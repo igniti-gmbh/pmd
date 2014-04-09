@@ -257,7 +257,32 @@ public class JavaDocTestClass {
 }
      ]]></code>      
     </test-code>
-                                           
+                                                                
+    <test-code>
+        <description><![CDATA[
+Illegal version tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+public class JavaDocTestClass {
+
+	/**
+  	 * @version Illegal version.
+     */
+	public static final int AUTHOR = 10;
+	
+	/**
+  	 * @version Illegal version.
+     */
+	public void method() {}	
+}
+     ]]></code>      
+    </test-code>
+                                 
     <test-code>
         <description><![CDATA[
 Malformed version tag.
@@ -313,7 +338,7 @@ public class JavaDocTestClass {
 }
      ]]></code>      
     </test-code>
-               
+                
    	<!-- DEPRECATED -->
    	
     <test-code>
@@ -466,8 +491,6 @@ public class JavaDocTestClass {
 }
      ]]></code>      
     </test-code>
-                                                                                                              
-	<!-- THROWS / EXCEPTION -->
                                                                                                  
 	<!-- THROWS / EXCEPTION -->
                             
