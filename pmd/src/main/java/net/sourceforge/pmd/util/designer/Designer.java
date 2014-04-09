@@ -124,14 +124,20 @@ public class Designer implements ClipboardOwner {
 	private static final int DEFAULT_LANGUAGE_VERSION_SELECTION_INDEX = Arrays.asList(getSupportedLanguageVersions())
 	.indexOf(Language.JAVA.getDefaultVersion());
 
-	private Node getCompilationUnit() {
-		LanguageVersionHandler languageVersionHandler = getLanguageVersionHandler();
-		Parser parser = languageVersionHandler.getParser(languageVersionHandler.getDefaultParserOptions());
-		Node node = parser.parse(null, new StringReader(codeEditorPane.getText()));
-		languageVersionHandler.getSymbolFacade().start(node);
-		languageVersionHandler.getTypeResolutionFacade(null).start(node);
-		return node;
-	}
+    private Node getCompilationUnit() {
+        LanguageVersionHandler languageVersionHandler = getLanguageVersionHandler();
+        return getCompilationUnit(languageVersionHandler);
+    }
+    static Node getCompilationUnit(LanguageVersionHandler languageVersionHandler, String code) {
+        Parser parser = languageVersionHandler.getParser(languageVersionHandler.getDefaultParserOptions());
+        Node node = parser.parse(null, new StringReader(code));
+        languageVersionHandler.getSymbolFacade().start(node);
+        languageVersionHandler.getTypeResolutionFacade(Designer.class.getClassLoader()).start(node);
+        return node;
+    }
+    private Node getCompilationUnit(LanguageVersionHandler languageVersionHandler) {
+        return getCompilationUnit(languageVersionHandler, codeEditorPane.getText());
+    }
 
 	private static LanguageVersion[] getSupportedLanguageVersions() {
 		List<LanguageVersion> languageVersions = new ArrayList<LanguageVersion>();
@@ -889,34 +895,48 @@ public class Designer implements ClipboardOwner {
 		new Designer(args);
 	}
 
-	private final void copyXmlToClipboard() {
-		if (codeEditorPane.getText() != null && codeEditorPane.getText().trim().length() > 0) {
-			String xml = "";
-			Node cu = getCompilationUnit();
-			if (cu != null) {
-				try {
-					xml = getXmlString(cu);
-				} catch (TransformerException e) {
-					e.printStackTrace();
-					xml = "Error trying to construct XML representation";
-				}
-			}
-			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(xml), this);
-		}
-	}
+    final void setCodeEditPaneText(String text) {
+        codeEditorPane.setText(text);
+    }
+
+    private final String getXmlTreeCode() {
+        if (codeEditorPane.getText() != null && codeEditorPane.getText().trim().length() > 0) {
+            Node cu = getCompilationUnit();
+            return getXmlTreeCode(cu);
+        }
+        return null;
+    }
+    static final String getXmlTreeCode(Node cu) {
+        String xml = null;
+        if (cu != null) {
+            try {
+                xml = getXmlString(cu);
+            } catch (TransformerException e) {
+                e.printStackTrace();
+                xml = "Error trying to construct XML representation";
+            }
+        }
+        return xml;
+    }
+
+    private final void copyXmlToClipboard() {
+        String xml = getXmlTreeCode();
+        if (xml != null) {
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(xml), this);
+        }
+    }
 
 	/**
 	 * Returns an unformatted xml string (without the declaration)
 	 *
 	 * @throws TransformerException if the XML cannot be converted to a string
 	 */
-	private String getXmlString(Node node) throws TransformerException {
+	private static String getXmlString(Node node) throws TransformerException {
 		StringWriter writer = new StringWriter();
 
 		Source source = new DOMSource(node.getAsDocument());
 		Result result = new StreamResult(writer);
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		transformerFactory.setAttribute("indent-number", 3);
 		Transformer xformer = transformerFactory.newTransformer();
 		xformer.setOutputProperty(OutputKeys.INDENT, "yes");
 		xformer.transform(source, result);
