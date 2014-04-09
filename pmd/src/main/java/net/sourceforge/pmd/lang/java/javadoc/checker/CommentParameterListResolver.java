@@ -7,6 +7,9 @@ import java.util.List;
  *
  * <p>This class resolves JavaDoc ref parameter types.</p>
  *
+ * @author Igniti GmbH <igniti-open@igniti.de>
+ * @since Apr 9, 2014
+ * 
  */
 public class CommentParameterListResolver {
 

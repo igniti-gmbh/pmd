@@ -42,6 +42,9 @@ import net.sourceforge.pmd.lang.java.rule.AbstractJavaRule;
  *     <li>Checks that tags are well-formed (type specified, description written, etc)</li>
  * </ul>
  *
+ * @author Igniti GmbH <igniti-open@igniti.de>
+ * @since Apr 9, 2014
+ * 
  */
 public class CommentChecker implements JavaDocParserCallback {
 
@@ -214,33 +217,40 @@ public class CommentChecker implements JavaDocParserCallback {
 
         } else {
 
+            if ("author".equals(tagName)) {
+                checkAuthorTag(tagLine, tagArg);
+            } else
+            if ("version".equals(tagName)) {
+                checkVersionTag(tagLine, tagArg);
+            } else
+            if ("since".equals(tagName)) {
+                checkSinceTag(tagLine, tagArg);
+            } else
             if ("return".equals(tagName)) {
                 checkReturnTag(tagLine, tagArg);
-            }
-
+            } else
             if ("param".equals(tagName)) {
                 checkParamTag(tagLine, tagArg);
-            }
-
+            } else
             if ("link".equals(tagName)) {
                 checkLinkTag(tagLine, tagArg);
-            }
-
+            } else
+            if ("value".equals(tagName)) {
+                checkValueTag(tagLine, tagArg);
+            } else
             if ("see".equals(tagName)) {
                 checkSeeTag(tagLine, tagArg);
-            }
-
+            } else
             if ("throws".equals(tagName) || "exception".equals(tagName)) {
                 checkThrowsTag(tagLine, tagName, tagArg);
-            }
-
+            } else
             if ("deprecated".equals(tagName)) {
                 checkDeprecatedTag(tagLine, tagArg);
             }
         }
     }
 
-    @Override
+	@Override
     public void onText(String text) {
     }
 
@@ -308,19 +318,60 @@ public class CommentChecker implements JavaDocParserCallback {
         return true;
     }
 
-    private void checkLinkTag(int tagLine, String text) {
+    private void checkLinkTag(int tagLine, String tagArg) {
 
+    	if (tagArg.trim().isEmpty()) {
+    		reporter.addViolation("Malformed @link tag, must at least specify the linked type.", tagLine);
+    	}	
+    	
     	if (checkReferences) {
-    		refChecker.check(tagLine, "@link", text);
+    		refChecker.check(tagLine, "@link", tagArg);
     	}
     }
 
-    private void checkSeeTag(int tagLine, String text) {
-
+    private void checkSeeTag(int tagLine, String tagArg) {
+    	
+    	if (tagArg.trim().isEmpty()) {
+    		reporter.addViolation("Malformed @see tag, must at least specify the linked type.", tagLine);
+    	}	
+    	
     	if (checkReferences) {
-    		refChecker.check(tagLine, "@see", text);
+    		refChecker.check(tagLine, "@see", tagArg);
     	}
     }
+
+    private void checkAuthorTag(int tagLine, String tagArg) {
+    	
+    	if (tagArg.trim().isEmpty()) {
+    		reporter.addViolation("Malformed @author tag,  must have a author name.", tagLine);
+    	}
+	}
+
+	private void checkValueTag(int tagLine, String tagArg) {
+		
+    	if (tagArg.trim().isEmpty()) {
+    		reporter.addViolation("Malformed @value tag, must have a JavaDoc reference.", tagLine);
+    	}
+    	
+    	if (checkReferences) {
+    		// TODO: this should only allow references to static fields
+    		refChecker.check(tagLine, "@value", tagArg);
+    	}
+	}
+
+	private void checkSinceTag(int tagLine, String tagArg) {
+		
+    	if (tagArg.trim().isEmpty()) {
+    		reporter.addViolation("Malformed @since tag,  must have text.", tagLine);
+    	}	
+	}
+
+	private void checkVersionTag(int tagLine, String tagArg) {
+
+    	if (tagArg.trim().isEmpty()) {
+    		reporter.addViolation("Malformed @version tag,  must have a version specification.", tagLine);
+    	}		
+	}
 
     private void checkReturnTag(int tagLine, String text) {
 

@@ -15,6 +15,9 @@ import net.sourceforge.pmd.lang.rule.properties.IntegerProperty;
  *
  * This class parses and validates JavaDoc.
  *
+ * @author Igniti GmbH <igniti-open@igniti.de>
+ * @since Apr 9, 2014
+ * 
  */
 public class JavaDocCommentRule extends AbstractCommentRule {
 	

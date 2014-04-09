@@ -5,6 +5,9 @@ import net.sourceforge.pmd.lang.java.ast.ASTUtil;
 /**
  *
  * <p>This class validates links specified in JavaDoc (the see and link tags).</p>
+ * 
+ * @author Igniti GmbH <igniti-open@igniti.de>
+ * @since Apr 9, 2014
  *
  */
 public class CommentRefChecker {

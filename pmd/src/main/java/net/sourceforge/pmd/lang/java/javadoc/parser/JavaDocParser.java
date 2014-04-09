@@ -9,6 +9,9 @@ import java.io.IOException;
  *
  * <p>Extracts tags from JavaDoc source and passes them to a {@link JavaDocParserCallback}.</p>
  *
+ * @author Igniti GmbH <igniti-open@igniti.de>
+ * @since Apr 9, 2014
+ *
  */
 public class JavaDocParser {
 

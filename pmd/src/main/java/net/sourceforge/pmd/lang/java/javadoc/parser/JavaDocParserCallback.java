@@ -5,6 +5,9 @@ package net.sourceforge.pmd.lang.java.javadoc.parser;
  * <p>Callback interface for the {@link JavaDocParser}.</p>
  *
  * <p>Clients implement this interface if they wish to be informed of parsing events.</p>
+ * 
+ * @author Igniti GmbH <igniti-open@igniti.de>
+ * @since Apr 9, 2014
  *
  */
 public interface JavaDocParserCallback {

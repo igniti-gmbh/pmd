@@ -78,10 +78,10 @@ A rule for the politically correct... we don't want to offend anyone.
 
     <rule name="JavaDocComment"
           language="java"
-          since="1.0"
+          since="5.2"
           message="JavaDoc does not satisfy commenting standards."
           class="net.sourceforge.pmd.lang.java.rule.comments.JavaDocCommentRule"
-          externalInfoUrl="${pmd.website.baseurl}/rules/comments.html#JavaDocCommentRule">
+          externalInfoUrl="${pmd.website.baseurl}/rules/java/comments.html#JavaDocComment">
         <description>
            Validates JavaDoc comment tags.
         </description>

@@ -15,6 +15,9 @@ import net.sourceforge.pmd.lang.java.ast.ASTUtil;
  *
  * <p>Contains methods which resolve types used in JavaDoc tags.</p>
  *
+ * @author Igniti GmbH <igniti-open@igniti.de>
+ * @since Apr 9, 2014
+ * 
  */
 public class CommentTypeResolver {
 

@@ -84,45 +84,6 @@ public class JavaDocTestClass {
      ]]></code>
     </test-code>
 
-   	<!-- DEPRECATED -->
-   	
-    <test-code>
-        <description><![CDATA[
-Deprecated tag.
-     ]]></description>
-     	<rule-property name="minimumContentLength">0</rule-property>
-     	<rule-property name="checkReferences">false</rule-property>
-        <expected-problems>0</expected-problems>
-        <code><![CDATA[
-package net.sourceforge.pmd.lang.java.rule.comments;
-public class JavaDocTestClass {
-	/**
-	 * @deprecated Replaced by OtherClass.
-	 * @return Some integer.
-	 */
-	public int method() { return 0; }
-}
-     ]]></code>      
-    </test-code>
-              
-    <test-code>
-        <description><![CDATA[
-Malformed deprecated tag.
-     ]]></description>
-     	<rule-property name="minimumContentLength">0</rule-property>
-     	<rule-property name="checkReferences">false</rule-property>
-        <expected-problems>1</expected-problems>
-        <code><![CDATA[
-package net.sourceforge.pmd.lang.java.rule.comments;
-public class JavaDocTestClass {
-	/**
-	 * @deprecated
-	 */
-	public void method() {}
-}
-     ]]></code>      
-    </test-code>
-             
    	<!-- PARAM -->
    	
     <test-code>
@@ -178,9 +139,361 @@ public class JavaDocTestClass <E, H extends Map> {
 	 * Parameter g is undocumented
 	 * @return Returns something.
 	 */
-	public <F, G> F getF(F f, G g) { return null; }	
+	public <F, G> F method(F f, G g) { return null; }	
+}
+     ]]></code>      
+    </test-code>
+                          
+    <test-code>
+        <description><![CDATA[
+Malformed parameter.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+public class JavaDocTestClass <E, H extends Map> {
+
+	/**
+	 * @param
+	 * @param malformed
+	 */
+	public void method() {}	
 }
      ]]></code>      
     </test-code>
              
+	<!-- AUTHOR -->
+                            
+    <test-code>
+        <description><![CDATA[
+Author tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * @author The author
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                           
+    <test-code>
+        <description><![CDATA[
+Malformed author tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * @author
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                        
+	<!-- VERSION -->
+                            
+    <test-code>
+        <description><![CDATA[
+Version tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * @version Some version.
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                           
+    <test-code>
+        <description><![CDATA[
+Malformed version tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * @version
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                        
+	<!-- SINCE -->
+                            
+    <test-code>
+        <description><![CDATA[
+Since tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * @since Some version.
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                           
+    <test-code>
+        <description><![CDATA[
+Malformed since tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * @since
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+               
+   	<!-- DEPRECATED -->
+   	
+    <test-code>
+        <description><![CDATA[
+Deprecated tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+public class JavaDocTestClass {
+	/**
+	 * @deprecated Replaced by OtherClass.
+	 * @return Some integer.
+	 */
+	public int method() { return 0; }
+}
+     ]]></code>      
+    </test-code>
+              
+    <test-code>
+        <description><![CDATA[
+Malformed deprecated tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+public class JavaDocTestClass {
+	/**
+	 * @deprecated
+	 */
+	public void method() {}
+}
+     ]]></code>      
+    </test-code>
+                                                
+	<!-- LINK -->
+                            
+    <test-code>
+        <description><![CDATA[
+Link tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * {@link Class}
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                           
+    <test-code>
+        <description><![CDATA[
+Malformed link tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * {@link}
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                                                       
+	<!-- SEE -->
+                            
+    <test-code>
+        <description><![CDATA[
+See tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * @see Class
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                           
+    <test-code>
+        <description><![CDATA[
+Malformed see tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * @see
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                                                                      
+	<!-- VALUE -->
+                            
+    <test-code>
+        <description><![CDATA[
+Value tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * @value Class#field
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                           
+    <test-code>
+        <description><![CDATA[
+Malformed value tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * @value
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                                                                                              
+	<!-- THROWS / EXCEPTION -->
+                            
+    <test-code>
+        <description><![CDATA[
+Throws / exception tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+public class JavaDocTestClass {
+
+	/**
+	 * @throws ArithmeticException
+     * @exception ArrayIndexOutOfBoundsException
+     */
+	public void method() {}
+}
+     ]]></code>      
+    </test-code>
+                                           
+    <test-code>
+        <description><![CDATA[
+Malformed throws / exception tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+public class JavaDocTestClass {
+
+	/**
+	 * @throws
+     * @exception
+     */
+	public void method() {}
+}
+     ]]></code>      
+    </test-code>
+               
+                            
+    <test-code>
+        <description><![CDATA[
+Illegal throws / exception tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * @throws ArithmeticException
+ * @exception ArrayIndexOutOfBoundsException
+ */
+public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                                       
 </test-data>

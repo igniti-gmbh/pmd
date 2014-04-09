@@ -3,6 +3,9 @@ package net.sourceforge.pmd.lang.java.javadoc.checker;
 /**
  *
  * <p>This class parses the parameter list of JavaDoc references, e.g. "(int name, float, String)".</p>
+ * 
+ * @author Igniti GmbH <igniti-open@igniti.de>
+ * @since Apr 9, 2014
  *
  */
 public class CommentParameterListParser {

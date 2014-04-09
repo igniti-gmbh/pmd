@@ -3,6 +3,9 @@ package net.sourceforge.pmd.lang.java.javadoc.checker;
 /**
  *
  * <p>Helper class with shortcuts for reporting rule violations.</p>
+ * 
+ * @author Igniti GmbH <igniti-open@igniti.de>
+ * @since Apr 9, 2014
  *
  */
 public class CommentReporter {
