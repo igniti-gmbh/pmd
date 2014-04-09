@@ -37,8 +37,6 @@ public class CommentRefChecker {
      */
     public void check(int tagLine, String tagName, String tagText) {
 
-        checker.countActualCommentCharacters(tagText);
-
         int separatorPos = tagText.indexOf('#');
         if (separatorPos != -1) {
 

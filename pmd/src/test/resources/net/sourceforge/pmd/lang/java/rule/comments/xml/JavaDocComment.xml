@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<test-data>
+<test-data>  
 
 	<!-- RETURN -->
 
@@ -227,12 +227,12 @@ public class JavaDocTestClass {
 
 	/**
   	 * @author Illegal author.
-     */
+         */
 	public static final int AUTHOR = 10;
 	
 	/**
   	 * @author Illegal author.
-     */
+         */
 	public void method() {}	
 }
      ]]></code>      
@@ -595,5 +595,77 @@ public class JavaDocTestClass {
 }
      ]]></code>      
     </test-code>
-           
+    
+    <!-- CHARACTER COUNT -->
+    
+    <code-fragment id="class-level-comment"><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+/**
+ * Regular
+ * @author The Author
+ * comment
+ * @version Some version
+ * text.
+ */
+public class JavaDocTestClass {
+}
+    ]]></code-fragment>
+        
+    <code-fragment id="method-level-comment"><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+public class JavaDocTestClass {
+	/**
+	 * Some text
+	 * {@link SomeClass Link Text}
+	 * mixed
+	 * @see SomeClass
+	 * with
+	 * @throws IllegalAccessException
+	 * the
+	 * @exception InterruptedException
+	 * tags.
+	 * @since The beginning of time.
+	 * @return Returns a nice value.
+	 * @param param The parameter.
+	 * @value JavaDocTestClass#field
+	 * @deprecated Just for testing.
+	 */
+	public int method(int param) throws IllegalAccessException, InterruptedException { return 0; }
+}
+    ]]></code-fragment>
+    
+    <test-code>
+        <description><![CDATA[Character count for class-level tags.]]></description>
+     	<rule-property name="minimumContentLength">39</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code-ref id="class-level-comment"/>    
+    </test-code>
+                      
+    <test-code>
+        <description><![CDATA[Character count for class-level tags (negative).]]></description>
+     	<rule-property name="minimumContentLength">40</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code-ref id="class-level-comment"/>    
+    </test-code>
+                  
+    <test-code>
+        <description><![CDATA[Character count for method-level tags.]]></description>
+     	<rule-property name="minimumContentLength">185</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code-ref id="method-level-comment"/>    
+    </test-code>
+                  
+    <test-code>
+        <description><![CDATA[Character count for method-level tags (negative).]]></description>
+     	<rule-property name="minimumContentLength">186</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code-ref id="method-level-comment"/>    
+    </test-code>
+              
 </test-data>

@@ -323,8 +323,11 @@ public class CommentChecker implements JavaDocParserCallback {
 
     	if (tagArg.trim().isEmpty()) {
     		reporter.addViolation("Malformed @link tag, must at least specify the linked type.", tagLine);
+    		return;
     	}	
-    	
+
+        countActualCommentCharacters(tagArg);
+
     	if (checkReferences) {
     		refChecker.check(tagLine, "@link", tagArg);
     	}
@@ -339,8 +342,11 @@ public class CommentChecker implements JavaDocParserCallback {
 
     	if (tagArg.trim().isEmpty()) {
     		reporter.addViolation("Malformed @see tag, must at least specify the linked type.", tagLine);
+    		return;
     	}	
     	
+        countActualCommentCharacters(tagArg);
+
     	if (checkReferences) {
     		refChecker.check(tagLine, "@see", tagArg);
     	}
@@ -355,15 +361,21 @@ public class CommentChecker implements JavaDocParserCallback {
 
     	if (tagArg.trim().isEmpty()) {
     		reporter.addViolation("Malformed @author tag,  must have a author name.", tagLine);
+    		return;
     	}
+
+        countActualCommentCharacters(tagArg);
 	}
 
 	private void checkValueTag(int tagLine, String tagArg) {
 		
     	if (tagArg.trim().isEmpty()) {
     		reporter.addViolation("Malformed @value tag, must have a JavaDoc reference.", tagLine);
+    		return;
     	}
     	
+        countActualCommentCharacters(tagArg);
+
     	if (checkReferences) {
     		// TODO: this should only allow references to static fields
     		refChecker.check(tagLine, "@value", tagArg);
@@ -379,7 +391,10 @@ public class CommentChecker implements JavaDocParserCallback {
 
     	if (tagArg.trim().isEmpty()) {
     		reporter.addViolation("Malformed @since tag, must have text.", tagLine);
+    		return;
     	}	
+    	
+        countActualCommentCharacters(tagArg);
 	}
 
 	private void checkVersionTag(int tagLine, String tagArg) {
@@ -391,10 +406,13 @@ public class CommentChecker implements JavaDocParserCallback {
 
     	if (tagArg.trim().isEmpty()) {
     		reporter.addViolation("Malformed @version tag,  must have a version specification.", tagLine);
+    		return;
     	}		
+
+        countActualCommentCharacters(tagArg);
 	}
 
-    private void checkReturnTag(int tagLine, String text) {
+    private void checkReturnTag(int tagLine, String tagArg) {
 
         returnDocumented = true;
 
@@ -409,13 +427,13 @@ public class CommentChecker implements JavaDocParserCallback {
             return;
         }
 
-        String trimmed = text.trim();
+        String trimmed = tagArg.trim();
         if (trimmed.isEmpty()) {
             reporter.addReturnMalformedViolation(tagLine);
             return;
         }
 
-        countActualCommentCharacters(trimmed);
+        countActualCommentCharacters(tagArg);
     }
 
     private void checkParamTag(int tagLine, String text) {
@@ -442,11 +460,11 @@ public class CommentChecker implements JavaDocParserCallback {
             return;
         }
 
+        countActualCommentCharacters(text);
+
         String paramName = trimmed.substring(0, paramEnd);
-        String descText = trimmed.substring(descStart);
 
         checkParameterExists(tagLine, paramName);
-        countActualCommentCharacters(descText);
     }
 
     private boolean checkParamTagAllowedInContext(int tagLine, String tagText) {
@@ -495,14 +513,10 @@ public class CommentChecker implements JavaDocParserCallback {
             return;
         }
 
-        String exceptionName;
+        countActualCommentCharacters(tagText);
+
         int descStart = tagText.indexOf(' ');
-        if (descStart != -1) {
-            exceptionName = tagText.substring(0, descStart);
-            countActualCommentCharacters(tagText.substring(descStart));
-        } else {
-            exceptionName = tagText;
-        }
+        String exceptionName = (descStart != -1) ? tagText.substring(0, descStart) : tagText;
 
         if (!checkThrowsTypeExists(tagLine, exceptionName)) {
         	return;
@@ -542,7 +556,10 @@ public class CommentChecker implements JavaDocParserCallback {
 
         if (tagArg.trim().isEmpty()) {
             reporter.addViolation("Malformed @deprecated tag, must have a description", tagLine);
+            return;
         }
+        
+        countActualCommentCharacters(tagArg);
     }
 
     /**

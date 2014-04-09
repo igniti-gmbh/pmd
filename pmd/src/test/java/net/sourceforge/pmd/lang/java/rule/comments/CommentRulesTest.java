@@ -11,9 +11,9 @@ public class CommentRulesTest extends SimpleAggregatorTst {
 
     @Before
     public void setUp() {
-    	//addRule(RULESET, "CommentRequired");
-        //addRule(RULESET, "CommentSize");
-        //addRule(RULESET, "CommentContent");
+    	addRule(RULESET, "CommentRequired");
+        addRule(RULESET, "CommentSize");
+        addRule(RULESET, "CommentContent");
         addRule(RULESET, "JavaDocComment");
     }
 

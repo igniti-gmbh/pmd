@@ -7,3 +7,8 @@ bin/
 .ruleset
 .settings/
 *.patch
+/target
+/target
+/target
+/target
+/target
