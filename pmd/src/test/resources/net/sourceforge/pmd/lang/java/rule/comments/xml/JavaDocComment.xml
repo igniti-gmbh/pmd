@@ -433,6 +433,8 @@ public class JavaDocTestClass {
     </test-code>
                                                                                                               
 	<!-- THROWS / EXCEPTION -->
+                                                                                                 
+	<!-- THROWS / EXCEPTION -->
                             
     <test-code>
         <description><![CDATA[
@@ -447,13 +449,35 @@ package net.sourceforge.pmd.lang.java.rule.comments;
 public class JavaDocTestClass {
 
 	/**
-	 * @throws ArithmeticException
-     * @exception ArrayIndexOutOfBoundsException
+	 * @throws IllegalAccessException
+     * @exception InterruptedException
+     */
+	public void method() throws IllegalAccessException, InterruptedException {}
+}
+     ]]></code>      
+    </test-code>
+                                            
+    <test-code>
+        <description><![CDATA[
+Throws / exception not actually thrown.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+public class JavaDocTestClass {
+
+	/**
+	 * Both exceptions are not in the throws list.
+	 * @throws IllegalAccessException
+     * @exception InterruptedException
      */
 	public void method() {}
 }
      ]]></code>      
-    </test-code>
+    </test-code>                    
                                            
     <test-code>
         <description><![CDATA[
@@ -467,15 +491,14 @@ package net.sourceforge.pmd.lang.java.rule.comments;
 
 public class JavaDocTestClass {
 
-	/**
-	 * @throws
+    /**
+     * @throws
      * @exception
      */
 	public void method() {}
 }
      ]]></code>      
-    </test-code>
-               
+    </test-code>              
                             
     <test-code>
         <description><![CDATA[
@@ -488,12 +511,31 @@ Illegal throws / exception tag.
 package net.sourceforge.pmd.lang.java.rule.comments;
 
 /**
- * @throws ArithmeticException
- * @exception ArrayIndexOutOfBoundsException
+ * @throws IllegalAccessException
+ * @exception InterruptedException
  */
 public class JavaDocTestClass {
 }
      ]]></code>      
     </test-code>
-                                       
+    
+    <test-code>
+        <description><![CDATA[
+Unresolved exception.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">true</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+
+public class JavaDocTestClass {
+	/**
+ 	 * @throws UnresolvedException
+ 	 */
+ 	public void method() {}
+}
+     ]]></code>      
+    </test-code>
+           
 </test-data>

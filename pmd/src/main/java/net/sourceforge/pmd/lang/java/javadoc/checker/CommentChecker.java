@@ -430,10 +430,6 @@ public class CommentChecker implements JavaDocParserCallback {
 
     private void checkThrowsTag(int tagLine, String tagName, String tagText) {
 
-        if (preprocessingStep) {
-            return;
-        }
-
         if (!(node instanceof ASTMethodDeclaration) && !(node instanceof ASTConstructorDeclaration)) {
             reporter.addViolation("Illegal " + tagName + " tag, may only be specified on methods and constructors", tagLine);
             return;
@@ -453,35 +449,38 @@ public class CommentChecker implements JavaDocParserCallback {
             exceptionName = tagText;
         }
 
-        checkThrowsExists(tagLine, exceptionName);
+        if (!checkThrowsTypeExists(tagLine, exceptionName)) {
+        	return;
+        }
 
         if (checkReferences) {
         	refChecker.check(tagLine, tagName, tagText);
         }
     }
 
-    private void checkThrowsExists(int tagLine, String exceptionName) {
+    private boolean checkThrowsTypeExists(int tagLine, String exceptionName) {
 
         Class<?> ref = typeResolver.resolveType(exceptionName);
         if (ref == null) {
             reporter.addViolation("Exception '" + exceptionName + "' could not be resolved", tagLine);
-            return;
+            return false;
         }
 
         if (RuntimeException.class.isAssignableFrom(ref)) {
-            // RuntimeException is implicit
+            // RuntimeException is implicit and doesn't have to be in the throws list
             documentedThrows.add(ref);
-            return;
+            return true;
         }
 
         for (Class<?> clazz : throwsDecls) {
             if (clazz == ref) { // NOPMD identity compare is intended
                 documentedThrows.add(clazz);
-                return;
+                return true;
             }
         }
 
         reporter.addViolation("Exception '" + exceptionName + "' specified in JavaDoc is not thrown by the documented method", tagLine);
+        return false;
     }
 
     private void checkParameterExists(int tagLine, String paramName) {
