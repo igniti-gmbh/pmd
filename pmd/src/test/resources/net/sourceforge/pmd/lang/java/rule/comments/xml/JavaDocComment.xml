@@ -103,7 +103,7 @@ public class JavaDocTestClass {
 
 	/**
      * Illegal (enum). 
-	 * @param illegalParam Not allowed here.
+	 * @param illegalEnumParam Not allowed here.
 	 */
 	public enum Enum {}
 

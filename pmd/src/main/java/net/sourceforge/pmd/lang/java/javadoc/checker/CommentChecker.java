@@ -9,6 +9,7 @@ import java.util.List;
 import net.sourceforge.pmd.lang.ast.Node;
 import net.sourceforge.pmd.lang.java.ast.ASTClassOrInterfaceDeclaration;
 import net.sourceforge.pmd.lang.java.ast.ASTConstructorDeclaration;
+import net.sourceforge.pmd.lang.java.ast.ASTEnumDeclaration;
 import net.sourceforge.pmd.lang.java.ast.ASTExtendsList;
 import net.sourceforge.pmd.lang.java.ast.ASTFieldDeclaration;
 import net.sourceforge.pmd.lang.java.ast.ASTFormalParameter;
@@ -330,7 +331,12 @@ public class CommentChecker implements JavaDocParserCallback {
     }
 
     private void checkSeeTag(int tagLine, String tagArg) {
-    	
+		
+        if (!(node instanceof ASTClassOrInterfaceDeclaration || node instanceof ASTEnumDeclaration || node instanceof ASTFieldDeclaration || node instanceof ASTMethodDeclaration || node instanceof ASTConstructorDeclaration)) { 
+            reporter.addViolation("Illegal @see tag, may only be specified on classes, interfaces, enums, fields, constructors and methods", tagLine);
+            return;
+        }
+
     	if (tagArg.trim().isEmpty()) {
     		reporter.addViolation("Malformed @see tag, must at least specify the linked type.", tagLine);
     	}	
@@ -342,6 +348,11 @@ public class CommentChecker implements JavaDocParserCallback {
 
     private void checkAuthorTag(int tagLine, String tagArg) {
     	
+        if (!(node instanceof ASTClassOrInterfaceDeclaration || node instanceof ASTEnumDeclaration)) { 
+            reporter.addViolation("Illegal @author tag, may only be specified on classes, interfaces and enums", tagLine);
+            return;
+        }
+
     	if (tagArg.trim().isEmpty()) {
     		reporter.addViolation("Malformed @author tag,  must have a author name.", tagLine);
     	}
@@ -361,12 +372,22 @@ public class CommentChecker implements JavaDocParserCallback {
 
 	private void checkSinceTag(int tagLine, String tagArg) {
 		
+        if (!(node instanceof ASTClassOrInterfaceDeclaration || node instanceof ASTEnumDeclaration || node instanceof ASTFieldDeclaration || node instanceof ASTMethodDeclaration || node instanceof ASTConstructorDeclaration)) { 
+            reporter.addViolation("Illegal @since tag, may only be specified on classes, interfaces, enums, fields, constructors and methods", tagLine);
+            return;
+        }
+
     	if (tagArg.trim().isEmpty()) {
-    		reporter.addViolation("Malformed @since tag,  must have text.", tagLine);
+    		reporter.addViolation("Malformed @since tag, must have text.", tagLine);
     	}	
 	}
 
 	private void checkVersionTag(int tagLine, String tagArg) {
+    	
+        if (!(node instanceof ASTClassOrInterfaceDeclaration || node instanceof ASTEnumDeclaration)) { 
+            reporter.addViolation("Illegal @version tag, may only be specified on classes, interfaces and enums", tagLine);
+            return;
+        }
 
     	if (tagArg.trim().isEmpty()) {
     		reporter.addViolation("Malformed @version tag,  must have a version specification.", tagLine);
@@ -428,6 +449,40 @@ public class CommentChecker implements JavaDocParserCallback {
         countActualCommentCharacters(descText);
     }
 
+    private boolean checkParamTagAllowedInContext(int tagLine, String tagText) {
+
+
+        if (node instanceof ASTMethodDeclaration || node instanceof ASTConstructorDeclaration) {
+            // ctor and method are always legal
+            return true;
+        }
+
+        if (node instanceof ASTClassOrInterfaceDeclaration) {
+
+            // only legal for parameterized class / interface
+            ASTClassOrInterfaceDeclaration classDecl = (ASTClassOrInterfaceDeclaration)node;
+            if (classDecl.getFirstChildOfType(ASTTypeParameters.class) != null) {
+                return true;
+            }
+        }
+
+        reporter.addViolation("Illegal @param tag '" + tagText + "', may only be specified on methods and constructors or generic types", tagLine);
+        return false;
+    }
+
+    private void checkParameterExists(int tagLine, String paramName) {
+
+        for (String name : parameterNames) {
+            if (paramName.equals(name)) {
+                // found our parameter
+                documentedParameters.add(paramName);
+                return;
+            }
+        }
+
+        reporter.addViolation("Parameter '" + paramName + "' specified in JavaDoc is not a parameter or generic type of the documented item", tagLine);
+    }
+
     private void checkThrowsTag(int tagLine, String tagName, String tagText) {
 
         if (!(node instanceof ASTMethodDeclaration) && !(node instanceof ASTConstructorDeclaration)) {
@@ -480,40 +535,6 @@ public class CommentChecker implements JavaDocParserCallback {
         }
 
         reporter.addViolation("Exception '" + exceptionName + "' specified in JavaDoc is not thrown by the documented method", tagLine);
-        return false;
-    }
-
-    private void checkParameterExists(int tagLine, String paramName) {
-
-        for (String name : parameterNames) {
-            if (paramName.equals(name)) {
-                // found our parameter
-                documentedParameters.add(paramName);
-                return;
-            }
-        }
-
-        reporter.addViolation("Parameter '" + paramName + "' specified in JavaDoc is not a parameter or generic type of the documented item", tagLine);
-    }
-
-    private boolean checkParamTagAllowedInContext(int tagLine, String tagText) {
-
-
-        if (node instanceof ASTMethodDeclaration || node instanceof ASTConstructorDeclaration) {
-            // ctor and method are always legal
-            return true;
-        }
-
-        if (node instanceof ASTClassOrInterfaceDeclaration) {
-
-            // only legal for parameterized class / interface
-            ASTClassOrInterfaceDeclaration classDecl = (ASTClassOrInterfaceDeclaration)node;
-            if (classDecl.getFirstChildOfType(ASTTypeParameters.class) != null) {
-                return true;
-            }
-        }
-
-        reporter.addViolation("Illegal @param tag '" + tagText + "', may only be specified on methods and constructors or generic types", tagLine);
         return false;
     }
 
