@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data>
+
+	<!-- RETURN -->
+
+    <test-code>
+        <description><![CDATA[
+Legal return tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+public class JavaDocTestClass {
+	
+	/**
+	 * @return Some integer.
+	 */
+	public int method() { return 42; }
+}
+     ]]></code>
+    </test-code>
+    
+    <test-code>
+        <description><![CDATA[
+Illegal return tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>3</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+/**
+ * @return Illegal class return.
+ */
+public class JavaDocTestClass {
+	
+	/**
+	 * @return Illegal enum return.
+	 */
+	public enum Enum {}
+
+	/**
+	 * @return Illegal void return.
+	 */
+	public void method() {}
+}
+     ]]></code>
+    </test-code>
+    
+    <test-code>
+        <description><![CDATA[
+Missing return tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+public class JavaDocTestClass {
+	/**
+	 */
+	public int method() { return 0; }
+}
+     ]]></code>
+    </test-code>
+    
+    <test-code>
+        <description><![CDATA[
+Malformed return tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+public class JavaDocTestClass {
+	/**
+	 * @return
+	 */
+	public int method() { return 0; }
+}
+     ]]></code>
+    </test-code>
+
+   	<!-- DEPRECATED -->
+   	
+    <test-code>
+        <description><![CDATA[
+Deprecated tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+public class JavaDocTestClass {
+	/**
+	 * @deprecated Replaced by OtherClass.
+	 * @return Some integer.
+	 */
+	public int method() { return 0; }
+}
+     ]]></code>      
+    </test-code>
+              
+    <test-code>
+        <description><![CDATA[
+Malformed deprecated tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+public class JavaDocTestClass {
+	/**
+	 * @deprecated
+	 */
+	public void method() {}
+}
+     ]]></code>      
+    </test-code>
+             
+   	<!-- PARAM -->
+   	
+    <test-code>
+        <description><![CDATA[
+Illegal param tag.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>3</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+/**
+ * Illegal (not a generic type). 
+ * @param illegalClassParam Not allowed here.
+ */
+public class JavaDocTestClass {
+
+	/**
+     * Illegal (enum). 
+	 * @param illegalParam Not allowed here.
+	 */
+	public enum Enum {}
+
+	/**
+	 * Parameter not found.
+	 *
+	 * @param noParams Not allowed here.
+	 */
+	public void method() {}
+}
+     ]]></code>      
+    </test-code>        
+              
+    <test-code>
+        <description><![CDATA[
+Undocumented parameter.
+     ]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">false</rule-property>
+        <expected-problems>6</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments;
+/**
+ * Parameter <E> is undocumented
+ * Parameter <H> is undocumented
+ */
+public class JavaDocTestClass <E, H extends Map> {
+
+	/**
+	 * Parameter <F> is undocumented
+	 * Parameter <F> is undocumented
+	 * Parameter f is undocumented
+	 * Parameter g is undocumented
+	 * @return Returns something.
+	 */
+	public <F, G> F getF(F f, G g) { return null; }	
+}
+     ]]></code>      
+    </test-code>
+             
+</test-data>

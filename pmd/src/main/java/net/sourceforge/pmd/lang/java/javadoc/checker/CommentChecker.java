@@ -45,7 +45,8 @@ import net.sourceforge.pmd.lang.java.rule.AbstractJavaRule;
  */
 public class CommentChecker implements JavaDocParserCallback {
 
-    private int minimumCommentLength = 10;
+    private int minimumCommentLength = 10;    
+    private boolean checkReferences = true;
 
 	private boolean preprocessingStep = true;
     private boolean returnDocumented;
@@ -79,6 +80,7 @@ public class CommentChecker implements JavaDocParserCallback {
      * @param rule The PMD rule using this checker.
      * @param node The node where the comment is attached.
      * @param data PMD data passed through to {@link AbstractJavaRule#addViolation}.
+     * 
      */
     public CommentChecker(AbstractJavaRule rule, AbstractJavaAccessNode node, Object data) {
 
@@ -108,6 +110,10 @@ public class CommentChecker implements JavaDocParserCallback {
      */
     public void setMinimumCommentLength(int minimumCommentLength) {
 		this.minimumCommentLength = minimumCommentLength;
+	}
+
+	public void setCheckReferences(boolean checkReferences) {
+		this.checkReferences = checkReferences;
 	}
 
     /**
@@ -262,8 +268,8 @@ public class CommentChecker implements JavaDocParserCallback {
                         actualCommentCharacterCount, commentLine);
             }
 
-            if (returnDocumented && node instanceof ASTMethodDeclaration && ((ASTMethodDeclaration) node).getResultType().isVoid()) {
-                reporter.addViolation("Methods returning anything other than void must not have a @return tag", commentLine);
+            if (!returnDocumented && node instanceof ASTMethodDeclaration && !((ASTMethodDeclaration) node).getResultType().isVoid()) {
+                reporter.addViolation("Methods returning anything other than void must have a @return tag", commentLine);
             }
 
             for (String parameterName : parameterNames) {
@@ -295,7 +301,7 @@ public class CommentChecker implements JavaDocParserCallback {
             ASTClassOrInterfaceDeclaration classDecl = (ASTClassOrInterfaceDeclaration)node;
             if (classDecl.getFirstChildOfType(ASTExtendsList.class) == null &&
                 classDecl.getFirstChildOfType(ASTImplementsList.class) == null) {
-                reporter.addViolation("@inheritDoc may not only be specified on classes without a super class or a class implementing interfaces", tagLine);
+                reporter.addViolation("@inheritDoc may not be specified on classes without a super class or a class implementing interfaces", tagLine);
                 return false;
             }
         }
@@ -304,12 +310,16 @@ public class CommentChecker implements JavaDocParserCallback {
 
     private void checkLinkTag(int tagLine, String text) {
 
-        refChecker.check(tagLine, "@link", text);
+    	if (checkReferences) {
+    		refChecker.check(tagLine, "@link", text);
+    	}
     }
 
     private void checkSeeTag(int tagLine, String text) {
 
-        refChecker.check(tagLine, "@see", text);
+    	if (checkReferences) {
+    		refChecker.check(tagLine, "@see", text);
+    	}
     }
 
     private void checkReturnTag(int tagLine, String text) {
@@ -394,7 +404,9 @@ public class CommentChecker implements JavaDocParserCallback {
 
         checkThrowsExists(tagLine, exceptionName);
 
-        refChecker.check(tagLine, tagName, tagText);
+        if (checkReferences) {
+        	refChecker.check(tagLine, tagName, tagText);
+        }
     }
 
     private void checkThrowsExists(int tagLine, String exceptionName) {
@@ -431,7 +443,7 @@ public class CommentChecker implements JavaDocParserCallback {
             }
         }
 
-        reporter.addViolation("Parameter '" + paramName + "' specified in JavaDoc is not a parameter of the documented member", tagLine);
+        reporter.addViolation("Parameter '" + paramName + "' specified in JavaDoc is not a parameter or generic type of the documented item", tagLine);
     }
 
     private boolean checkParamTagAllowedInContext(int tagLine, String tagText) {
@@ -452,7 +464,7 @@ public class CommentChecker implements JavaDocParserCallback {
         }
 
         reporter.addViolation("Illegal @param tag '" + tagText + "', may only be specified on methods and constructors or generic types", tagLine);
-        return true;
+        return false;
     }
 
     private void checkDeprecatedTag(int tagLine, String tagArg) {

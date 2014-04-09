@@ -130,7 +130,7 @@ public final class ASTUtil {
 
         Class<?> clazz = getNodeClass(method);
         if (clazz == null) {
-            System.err.println("Could not resolve class in method override test " + getMethodClassName(method) + "." + method.getMethodName());
+            System.err.println("Could not resolve class '" + getMethodClassName(method) + "' in method override test of method '" + method.getMethodName() + "'");
             return false;
         }
 
