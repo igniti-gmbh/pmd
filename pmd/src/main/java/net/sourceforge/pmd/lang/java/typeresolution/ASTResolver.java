@@ -1,11 +1,14 @@
-package net.sourceforge.pmd.lang.java.ast;
+package net.sourceforge.pmd.lang.java.typeresolution;
 
 import java.lang.reflect.Array;
 import java.util.Set;
 
+import net.sourceforge.pmd.lang.java.ast.AbstractJavaNode;
+import net.sourceforge.pmd.lang.java.ast.util.ASTUtil;
+
 /**
  *
- * This class helps resolving java types.
+ * This class helps resolving java types based on information gathered from the AST.
  *
  */
 public class ASTResolver {

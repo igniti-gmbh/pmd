@@ -8,8 +8,8 @@ import java.util.Set;
 
 import net.sourceforge.pmd.lang.java.ast.ASTCompilationUnit;
 import net.sourceforge.pmd.lang.java.ast.ASTImportDeclaration;
-import net.sourceforge.pmd.lang.java.ast.ASTResolver;
-import net.sourceforge.pmd.lang.java.ast.ASTUtil;
+import net.sourceforge.pmd.lang.java.ast.util.ASTUtil;
+import net.sourceforge.pmd.lang.java.typeresolution.ASTResolver;
 
 /**
  *

@@ -56,8 +56,9 @@ public class CommentParameterListResolver {
 
         Class<?> type = checker.getTypeResolver().resolveType(typeName);
         if (type == null) {
-            checker.getReporter().addViolation("Could not resolve argument type '" + typeName + "'", tagLine);
-            return false;
+        	// use Object if we cannot resolve the type, this will match generic parameters
+        	// later when looking for the overload.
+            type = Object.class;
         }
         paramTypes.add(type);
         return true;

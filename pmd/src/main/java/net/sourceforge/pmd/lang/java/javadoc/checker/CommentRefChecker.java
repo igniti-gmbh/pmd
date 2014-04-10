@@ -1,6 +1,6 @@
 package net.sourceforge.pmd.lang.java.javadoc.checker;
 
-import net.sourceforge.pmd.lang.java.ast.ASTUtil;
+import net.sourceforge.pmd.lang.java.ast.util.ASTUtil;
 
 /**
  *

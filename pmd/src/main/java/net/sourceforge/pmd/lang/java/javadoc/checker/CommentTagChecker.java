@@ -21,11 +21,15 @@ public class CommentTagChecker {
 
 	private final CommentChecker checker;    
 	private final CommentRefChecker refChecker;
-	
+
 	public CommentTagChecker(CommentChecker checker) {
 		
 		this.checker = checker;
 		this.refChecker = new CommentRefChecker(checker);
+	}
+	
+	public CommentRefChecker getRefChecker() {
+		return refChecker;
 	}
 	
     public void checkAuthorTag(int tagLine, String tagArg) {
