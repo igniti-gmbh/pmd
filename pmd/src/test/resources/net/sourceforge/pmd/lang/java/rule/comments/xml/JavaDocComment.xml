@@ -612,32 +612,55 @@ public class JavaDocTestClass {
         <code-ref id="method-level-comment"/>    
     </test-code>
 
-    <!-- REFERENCES / LINKS -->
+    <!-- TYPE REFERENCES -->
                                
     <test-code>
         <description><![CDATA[JavaDoc References]]></description>
      	<rule-property name="minimumContentLength">0</rule-property>
      	<rule-property name="checkReferences">true</rule-property>
-        <expected-problems>100</expected-problems>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 package net.sourceforge.pmd.lang.java.rule.comments.testclasses;
 
 /**
  * 
- * <p>A link to the {@link JavaDocTestClass test class}.</p>
- * <p>A link to the third overload {@link JavaDocTestClass#overload2(E) method}.</p>
+ * <p>A link to the {@link net.sourceforge.pmd.lang.java.rule.comments.testclasses.JavaDocTestClass test class}.</p>
  * <p>A link to a {@link JavaDocTestClass#method1() method}.</p>
- * <p>A link to the overload {@link JavaDocTestClass#overload1 method}.</p>
+ * <p>A link to a {@link JavaDocTestClass#field1 field}.</p>
+ * <p>A link to a {@link JavaDocTestClass#field2 static field}.</p>
+ * <p>A link to the one of the overloads {@link JavaDocTestClass#overload1 method}.</p>
  * <p>A link to the first overload {@link JavaDocTestClass#overload1(int param1) method}.</p>
  * <p>A link to the second overload {@link JavaDocTestClass#overload1(int, int) method}.</p>
+ * <p>A link to the third overload {@link JavaDocTestClass#overload2(java.util.List) method}.</p>
+ * <p>A link to the fourth overload {@link JavaDocTestClass#overload2(E, F) method}.</p>
+ * <p>A link to the fourth overload {@link JavaDocTestClass#overload2(Object, Object) method}.</p>
  *
  */
 public class JavaDocTestClass {
+}
+     ]]></code>      
+    </test-code>
+                               
+    <test-code>
+        <description><![CDATA[JavaDoc References (negative)]]></description>
+     	<rule-property name="minimumContentLength">0</rule-property>
+     	<rule-property name="checkReferences">true</rule-property>
+        <expected-problems>7</expected-problems>
+        <code><![CDATA[
+package net.sourceforge.pmd.lang.java.rule.comments.testclasses;
 
-	/**
-	 * <p>A link to the {@link JavaDocTestClass test class}.</p>
-	 */
-	public void test1() {}
+/**
+ * 
+ * <p>A link to the {@link no.such.package.NoSuchClass test class}.</p>
+ * <p>A link to a {@link JavaDocTestClass#nonExistentMethod1() method}.</p>
+ * <p>A link to a {@link JavaDocTestClass#nonExistentField1 field}.</p>
+ * <p>A link to a {@link JavaDocTestClass#nonExistentField2 static field}.</p>
+ * <p>A link to the one of the overloads {@link JavaDocTestClass#nonExistentOverload1 method}.</p>
+ * <p>A link to the first overload {@link JavaDocTestClass#overload1(String) method}.</p>
+ * <p>A link to the second overload {@link JavaDocTestClass#overload1(fload, Double) method}.</p>
+ *
+ */
+public class JavaDocTestClass {
 }
      ]]></code>      
     </test-code>
