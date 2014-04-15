@@ -73,7 +73,11 @@ public final class ASTUtil {
      * @return A {@link Class} object representing the associated class, or null if the class could not be resolved.
      *
      */
-    public static Class<?> getNodeClass(AbstractJavaAccessNode node) {
+    public static Class<?> getNodeClass(AbstractJavaNode node) {
+
+        if (node instanceof ASTMethodDeclaration && isAnonymousInnerClassMethod((ASTMethodDeclaration) node)) {
+            return getAnonymousInnerClass((ASTMethodDeclaration) node, getBodyClass(node.getFirstParentOfType(ASTClassOrInterfaceBody.class)));
+        }
 
         // class Foo {}
         ASTClassOrInterfaceBody body = node.getFirstParentOfType(ASTClassOrInterfaceBody.class);
@@ -99,25 +103,52 @@ public final class ASTUtil {
         return null;
     }
 
+    private static Class<?> getAnonymousInnerClass(ASTMethodDeclaration method, Class<?> superClass) {
+
+        ASTClassOrInterfaceDeclaration classDecl = method.getFirstParentOfType(ASTClassOrInterfaceDeclaration.class);
+        if (classDecl == null || classDecl.getType() == null) {
+            return null;
+        }
+
+        String outerClassName = classDecl.getType().getCanonicalName();
+        String packageName = getPackageName(method);
+        Set<String> imports = getNodeImports(method);
+
+        for (int i=1; i<100; ++i) {
+
+            Class<?> anonymous = ASTResolver.resolveType(outerClassName + '$' + i, packageName, outerClassName, imports);
+            if (anonymous == null) {
+                // compiler uses consecutive indices for the names, we can stop as soon as we don't find a
+                // inner class
+                break;
+            }
+
+            if (superClass.isAssignableFrom(anonymous)) {
+                return anonymous;
+            }
+        }
+
+        return null;
+    }
+
     private static Class<?> getBodyClass(ASTClassOrInterfaceBody body) {
 
         if (body.jjtGetParent() instanceof ASTClassOrInterfaceDeclaration) {
             // method in a top-level class or inner class
             ASTClassOrInterfaceDeclaration decl = (ASTClassOrInterfaceDeclaration)body.jjtGetParent();
-            return decl.getType();
+            if (decl.getType() != null) {
+                return decl.getType();
+            }
+
+            return ASTResolver.resolveType(decl, decl.getImage());
         }
 
         // Foo = new Foo() {}
         if (body.jjtGetParent() instanceof ASTAllocationExpression) {
 
-            // method in a anonymous class
-            ASTAllocationExpression expr = (ASTAllocationExpression)body.jjtGetParent();
-            for (int i=0; i<expr.jjtGetNumChildren(); i++) {
-
-                if (expr.jjtGetChild(i) instanceof ASTClassOrInterfaceType) {
-                    return expr.getType();
-                }
-            }
+			// method in a anonymous class
+            ASTClassOrInterfaceType type = body.jjtGetParent().getFirstChildOfType(ASTClassOrInterfaceType.class);
+            return type.getType() != null ? type.getType() : ASTResolver.resolveType(body, type.getImage());
         }
 
         return null;
@@ -142,6 +173,12 @@ public final class ASTUtil {
         return null;
     }
 
+    public static boolean isAnonymousInnerClassMethod(ASTMethodDeclaration method) {
+
+        ASTClassOrInterfaceBody body = method.getFirstParentOfType(ASTClassOrInterfaceBody.class);
+        return (body != null) && (body.jjtGetParent() instanceof ASTAllocationExpression);
+    }
+
     /**
      *
      * <p>Tests if a method overrides a base class method or implements an interface method.</p>
@@ -158,9 +195,14 @@ public final class ASTUtil {
 
         Class<?> clazz = getNodeClass(method);
         if (clazz == null) {
-            System.err.println("Could not resolve class '" + getMethodClassName(method) + "' in method override test of method '" + method.getMethodName() + "'");
+            System.err.println("Could not resolve class in method override test " + getNodeClassName(method) + "." + method.getMethodName());
             return false;
         }
+
+        return isOverrideMethod(method, clazz);
+    }
+
+    private static boolean isOverrideMethod(ASTMethodDeclaration method, Class<?> clazz) {
 
         if (isMethodInClassInterfaces(method, clazz)) {
             return true;
@@ -366,6 +408,11 @@ public final class ASTUtil {
             GenericArrayType arrayType = (GenericArrayType)type;
             return ref.isArray() && isTypeEqual(ref.getComponentType(), arrayType.getGenericComponentType());
 
+        } else
+        if (type instanceof ParameterizedType) {
+
+            ParameterizedType parameterizedType = (ParameterizedType)type;
+            return parameterizedType.getRawType() == ref; // NOPMD intentional
         } else
         if (type instanceof Class<?>) {
 
@@ -734,60 +781,6 @@ public final class ASTUtil {
     /**
      *
      * <p>Tries to resolve a fully qualified class name without using reflection. This is used to
-     * report unresolvable types. Note that this only works for the compilation unit the method
-     * was defined in.</p>
-     *
-     * @param methodDecl The method declaration AST node.
-     *
-     * @return The full qualified class name or a string containing partial information.
-     *
-     */
-    public static String getMethodClassName(ASTMethodDeclaration methodDecl) {
-
-        return getConstructorOrMethodClassName(methodDecl);
-    }
-
-    /**
-     *
-     * <p>Tries to resolve a fully qualified class name without using reflection. This is used to
-     * report unresolvable types. Note that this only works for the compilation unit the constructor
-     * was defined in.</p>
-     *
-     * @param ctorDecl The method declaration AST node.
-     *
-     * @return The full qualified class name or a string containing partial information.
-     *
-     */
-    public static String getConstructorClassName(ASTConstructorDeclaration ctorDecl) {
-
-        return getConstructorOrMethodClassName(ctorDecl);
-    }
-
-    private static String getConstructorOrMethodClassName(AbstractJavaAccessNode methodDecl) {
-
-        ASTClassOrInterfaceDeclaration classDecl = methodDecl.getFirstParentOfType(ASTClassOrInterfaceDeclaration.class);
-        if (classDecl != null) {
-            return getNodeClassName(classDecl);
-        }
-
-        ASTEnumDeclaration enumDecl = methodDecl.getFirstParentOfType(ASTEnumDeclaration.class);
-        if (enumDecl != null) {
-            return getNodeClassName(enumDecl);
-        }
-
-        StringBuilder sb = new StringBuilder();
-        sb.append('<');
-        sb.append(getPackageName(methodDecl));
-        sb.append('>');
-        sb.append('.');
-        sb.append(UNRESOLVED_NAME);
-
-        return sb.toString();
-    }
-
-    /**
-     *
-     * <p>Tries to resolve a fully qualified class name without using reflection. This is used to
      * report unresolvable types. Note that this only works for the compilation unit the class
      * was defined in.</p>
      *
@@ -959,7 +952,6 @@ public final class ASTUtil {
      * @return A list with nodes of type {@code childClass}.
      *
      */
-    @SuppressWarnings({"unchecked"})
     public static <T extends Node> T getFirstDescendantOfType(Node node, Class<T> childClass, Class<? extends Node> stopAt) {
 
         for (int i=0; i<node.jjtGetNumChildren(); i++) {
