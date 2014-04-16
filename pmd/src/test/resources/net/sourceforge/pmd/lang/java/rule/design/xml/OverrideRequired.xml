@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data>
+    <test-code>
+        <description><![CDATA[Missing override in derived class]]></description>
+        <expected-problems>5</expected-problems>
+        <code><![CDATA[        
+package net.sourceforge.pmd.lang.java.rule.design.testclasses;
+
+public class OverrideRequiredDerivedClass extends OverrideRequiredBaseClass<String> {
+
+	public void baseClassMethod1() {}
+
+	public void baseClassMethod2(int param1, float param2) {}
+	
+	public void baseClassMethod3(String param) {}
+	
+	public void baseClassMethod4(String param) {}
+
+	public <F> void baseClassMethod5(F param) {}
+}
+     ]]></code>
+    </test-code>
+    
+    <test-code>
+        <description><![CDATA[Missing override in interface implementation]]></description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[        
+package net.sourceforge.pmd.lang.java.rule.design.testclasses;
+
+public class OverrideRequiredBaseClass implements OverrideRequiredInterface {
+
+	public void interfaceMethod1() {}
+}
+     ]]></code>
+    </test-code>    
+    
+    <test-code>
+        <description><![CDATA[Override in derived class]]></description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[        
+package net.sourceforge.pmd.lang.java.rule.design.testclasses;
+
+public class OverrideRequiredDerivedClass extends OverrideRequiredBaseClass<String> {
+
+	@Override
+	public void baseClassMethod1() {}
+
+	@Override
+	public void baseClassMethod2(int param1, float param2) {}
+	
+	@Override
+	public void baseClassMethod3(String param) {}
+	
+	@Override
+	public void baseClassMethod4(String param) {}
+
+	@Override
+	public <F> void baseClassMethod5(F param) {}
+}
+     ]]></code>
+     
+    </test-code>
+         <test-code>
+        <description><![CDATA[Override in interface implementation]]></description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[        
+package net.sourceforge.pmd.lang.java.rule.design.testclasses;
+
+public class OverrideRequiredBaseClass implements OverrideRequiredInterface {
+
+	@Override
+	public void interfaceMethod1() {}
+}
+     ]]></code>
+    </test-code>    
+       
+</test-data>

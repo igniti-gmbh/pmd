@@ -1868,4 +1868,38 @@ public final class Foo {
          </example>
        </rule>
     
+    <rule name="OverrideRequired"
+          language="java"
+          since="5.2"
+          message="Overriding methods must specify an @Override annotation"
+          class="net.sourceforge.pmd.lang.java.rule.design.OverrideRequiredRule"
+          externalInfoUrl="${pmd.website.baseurl}/rules/java/design.html#OverrideRequired">
+        <description>
+            Verifies that methods overriding base class or interface methods specify the @Override annotation.
+        </description>
+        <priority>2</priority>
+        <example><![CDATA[
+public class BaseClass {
+
+    public void foo() {
+    }
+}
+
+public class DerivedClass1 {
+
+    // not OK, missing @Override
+    public void foo() {
+    }
+}
+
+public class DerivedClass2 {
+
+    //  OK, has @Override
+    @Override
+    public void foo() {
+    }
+}
+]]>
+        </example>
+    </rule>
 </ruleset>

@@ -5,6 +5,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.HashSet;
@@ -37,7 +38,6 @@ import net.sourceforge.pmd.lang.java.ast.ASTTypeBound;
 import net.sourceforge.pmd.lang.java.ast.ASTTypeParameter;
 import net.sourceforge.pmd.lang.java.ast.ASTTypeParameters;
 import net.sourceforge.pmd.lang.java.ast.ASTVariableDeclaratorId;
-import net.sourceforge.pmd.lang.java.ast.AbstractJavaAccessNode;
 import net.sourceforge.pmd.lang.java.ast.AbstractJavaNode;
 import net.sourceforge.pmd.lang.java.ast.Comment;
 import net.sourceforge.pmd.lang.java.symboltable.ClassScope;
@@ -60,7 +60,8 @@ public final class ASTUtil {
 
     private static final String UNRESOLVED_NAME = "<unresolved>";
 
-    private ASTUtil() {}
+    private ASTUtil() {
+    }
 
     /**
      *
@@ -75,108 +76,108 @@ public final class ASTUtil {
      */
     public static Class<?> getNodeClass(AbstractJavaNode node) {
 
-        if (node instanceof ASTMethodDeclaration && isAnonymousInnerClassMethod((ASTMethodDeclaration) node)) {
-            return getAnonymousInnerClass((ASTMethodDeclaration) node, getBodyClass(node.getFirstParentOfType(ASTClassOrInterfaceBody.class)));
-        }
+	if (node instanceof ASTMethodDeclaration && isAnonymousInnerClassMethod((ASTMethodDeclaration) node)) {
+	    return getAnonymousInnerClass((ASTMethodDeclaration) node, getBodyClass(node.getFirstParentOfType(ASTClassOrInterfaceBody.class)));
+	}
 
-        // class Foo {}
-        ASTClassOrInterfaceBody body = node.getFirstParentOfType(ASTClassOrInterfaceBody.class);
-        if (body != null) {
-            return getBodyClass(body);
-        }
+	// class Foo {}
+	ASTClassOrInterfaceBody body = node.getFirstParentOfType(ASTClassOrInterfaceBody.class);
+	if (body != null) {
+	    return getBodyClass(body);
+	}
 
-        ASTEnumDeclaration enumDecl = node.getFirstParentOfType(ASTEnumDeclaration.class);
-        if (enumDecl != null) {
-            return getEnumClass(enumDecl);
-        }
+	ASTEnumDeclaration enumDecl = node.getFirstParentOfType(ASTEnumDeclaration.class);
+	if (enumDecl != null) {
+	    return getEnumClass(enumDecl);
+	}
 
-        // try to find the interface / class declared in the CU
-        ASTCompilationUnit unitDecl = node.getFirstParentOfType(ASTCompilationUnit.class);
-        if (unitDecl != null) {
+	// try to find the interface / class declared in the CU
+	ASTCompilationUnit unitDecl = node.getFirstParentOfType(ASTCompilationUnit.class);
+	if (unitDecl != null) {
 
-            body = unitDecl.getFirstDescendantOfType(ASTClassOrInterfaceBody.class);
-            if (body != null) {
-                return getBodyClass(body);
-            }
-        }
+	    body = unitDecl.getFirstDescendantOfType(ASTClassOrInterfaceBody.class);
+	    if (body != null) {
+		return getBodyClass(body);
+	    }
+	}
 
-        return null;
+	return null;
     }
 
     private static Class<?> getAnonymousInnerClass(ASTMethodDeclaration method, Class<?> superClass) {
 
-        ASTClassOrInterfaceDeclaration classDecl = method.getFirstParentOfType(ASTClassOrInterfaceDeclaration.class);
-        if (classDecl == null || classDecl.getType() == null) {
-            return null;
-        }
+	ASTClassOrInterfaceDeclaration classDecl = method.getFirstParentOfType(ASTClassOrInterfaceDeclaration.class);
+	if (classDecl == null || classDecl.getType() == null) {
+	    return null;
+	}
 
-        String outerClassName = classDecl.getType().getCanonicalName();
-        String packageName = getPackageName(method);
-        Set<String> imports = getNodeImports(method);
+	String outerClassName = classDecl.getType().getCanonicalName();
+	String packageName = getPackageName(method);
+	Set<String> imports = getNodeImports(method);
 
-        for (int i=1; i<100; ++i) {
+	for (int i = 1; i < 100; ++i) {
 
-            Class<?> anonymous = ASTResolver.resolveType(outerClassName + '$' + i, packageName, outerClassName, imports);
-            if (anonymous == null) {
-                // compiler uses consecutive indices for the names, we can stop as soon as we don't find a
-                // inner class
-                break;
-            }
+	    Class<?> anonymous = ASTResolver.resolveType(outerClassName + '$' + i, packageName, outerClassName, imports);
+	    if (anonymous == null) {
+		// compiler uses consecutive indices for the names, we can stop as soon as we don't find a
+		// inner class
+		break;
+	    }
 
-            if (superClass.isAssignableFrom(anonymous)) {
-                return anonymous;
-            }
-        }
+	    if (superClass.isAssignableFrom(anonymous)) {
+		return anonymous;
+	    }
+	}
 
-        return null;
+	return null;
     }
 
     private static Class<?> getBodyClass(ASTClassOrInterfaceBody body) {
 
-        if (body.jjtGetParent() instanceof ASTClassOrInterfaceDeclaration) {
-            // method in a top-level class or inner class
-            ASTClassOrInterfaceDeclaration decl = (ASTClassOrInterfaceDeclaration)body.jjtGetParent();
-            if (decl.getType() != null) {
-                return decl.getType();
-            }
+	if (body.jjtGetParent() instanceof ASTClassOrInterfaceDeclaration) {
+	    // method in a top-level class or inner class
+	    ASTClassOrInterfaceDeclaration decl = (ASTClassOrInterfaceDeclaration) body.jjtGetParent();
+	    if (decl.getType() != null) {
+		return decl.getType();
+	    }
 
-            return ASTResolver.resolveType(decl, decl.getImage());
-        }
+	    return ASTResolver.resolveType(decl, decl.getImage());
+	}
 
-        // Foo = new Foo() {}
-        if (body.jjtGetParent() instanceof ASTAllocationExpression) {
+	// Foo = new Foo() {}
+	if (body.jjtGetParent() instanceof ASTAllocationExpression) {
 
-			// method in a anonymous class
-            ASTClassOrInterfaceType type = body.jjtGetParent().getFirstChildOfType(ASTClassOrInterfaceType.class);
-            return type.getType() != null ? type.getType() : ASTResolver.resolveType(body, type.getImage());
-        }
+	    // method in a anonymous class
+	    ASTClassOrInterfaceType type = body.jjtGetParent().getFirstChildOfType(ASTClassOrInterfaceType.class);
+	    return type.getType() != null ? type.getType() : ASTResolver.resolveType(body, type.getImage());
+	}
 
-        return null;
+	return null;
     }
 
     private static Class<?> getEnumClass(ASTEnumDeclaration enumDecl) {
 
-        if (enumDecl.getType() != null) {
-            return enumDecl.getType();
-        }
+	if (enumDecl.getType() != null) {
+	    return enumDecl.getType();
+	}
 
-        // PMD 5.1.0 doesn't seem to resolve enum types, manually look up the full qualified
-        // name as a fallback
+	// PMD 5.1.0 doesn't seem to resolve enum types, manually look up the full qualified
+	// name as a fallback
 
-        String fqn = getNodeClassName(enumDecl);
-        try {
-            return Class.forName(fqn);
-        } catch (ClassNotFoundException e) {
-            System.err.println("Could not resolve enum class " + getNodeClassName(enumDecl)); // NOPMD PMD doesn't propagate exception
-        }
+	String fqn = getNodeClassName(enumDecl);
+	try {
+	    return Class.forName(fqn);
+	} catch (ClassNotFoundException e) {
+	    System.err.println("Could not resolve enum class " + getNodeClassName(enumDecl)); // NOPMD PMD doesn't propagate exception
+	}
 
-        return null;
+	return null;
     }
 
     public static boolean isAnonymousInnerClassMethod(ASTMethodDeclaration method) {
 
-        ASTClassOrInterfaceBody body = method.getFirstParentOfType(ASTClassOrInterfaceBody.class);
-        return (body != null) && (body.jjtGetParent() instanceof ASTAllocationExpression);
+	ASTClassOrInterfaceBody body = method.getFirstParentOfType(ASTClassOrInterfaceBody.class);
+	return (body != null) && (body.jjtGetParent() instanceof ASTAllocationExpression);
     }
 
     /**
@@ -193,36 +194,37 @@ public final class ASTUtil {
      */
     public static boolean isOverrideMethod(ASTMethodDeclaration method) {
 
-        Class<?> clazz = getNodeClass(method);
-        if (clazz == null) {
-            System.err.println("Could not resolve class in method override test " + getNodeClassName(method) + "." + method.getMethodName());
-            return false;
-        }
+	Class<?> clazz = getNodeClass(method);
+	if (clazz == null) {
+	    System.err.println("Could not resolve class in method override test " + getNodeClassName(method) + "."
+		    + method.getMethodName());
+	    return false;
+	}
 
-        return isOverrideMethod(method, clazz);
+	return isOverrideMethod(method, clazz);
     }
 
     private static boolean isOverrideMethod(ASTMethodDeclaration method, Class<?> clazz) {
 
-        if (isMethodInClassInterfaces(method, clazz)) {
-            return true;
-        }
+	if (isMethodInClassInterfaces(method, clazz)) {
+	    return true;
+	}
 
-        Class<?> parent = clazz.getSuperclass();
-        while (parent != null) {
+	Class<?> parent = clazz.getSuperclass();
+	while (parent != null) {
 
-            if (isMethodInType(method, parent)) {
-                return true;
-            }
+	    if (isMethodInType(method, parent)) {
+		return true;
+	    }
 
-            if (isMethodInClassInterfaces(method, parent)) {
-                return true;
-            }
+	    if (isMethodInClassInterfaces(method, parent)) {
+		return true;
+	    }
 
-            parent = parent.getSuperclass();
-        }
+	    parent = parent.getSuperclass();
+	}
 
-        return false;
+	return false;
     }
 
     /**
@@ -237,18 +239,18 @@ public final class ASTUtil {
      */
     public static boolean isMethodInClassInterfaces(ASTMethodDeclaration method, Class<?> clazz) {
 
-        for (Class<?> iface : clazz.getInterfaces()) {
+	for (Class<?> iface : clazz.getInterfaces()) {
 
-            if (isMethodInType(method, iface)) {
-                return true;
-            }
+	    if (isMethodInType(method, iface)) {
+		return true;
+	    }
 
-            if (isMethodInClassInterfaces(method, iface)) {
-                return true;
-            }
-        }
+	    if (isMethodInClassInterfaces(method, iface)) {
+		return true;
+	    }
+	}
 
-        return false;
+	return false;
     }
 
     /**
@@ -263,12 +265,12 @@ public final class ASTUtil {
      */
     public static boolean isMethodInType(ASTMethodDeclaration method, Class<?> clazz) {
 
-        for (Method classMethod : clazz.getDeclaredMethods()) {
-            if (isMethodEqual(method, classMethod)) {
-                return true;
-            }
-        }
-        return false;
+	for (Method classMethod : clazz.getDeclaredMethods()) {
+	    if (isMethodEqual(method, classMethod)) {
+		return true;
+	    }
+	}
+	return false;
     }
 
     /**
@@ -283,204 +285,206 @@ public final class ASTUtil {
      */
     public static boolean isMethodEqual(ASTMethodDeclaration ref, Method method) {
 
-        if (!ref.getMethodName().equals(method.getName())) {
-            return false;
-        }
+	if (!ref.getMethodName().equals(method.getName())) {
+	    return false;
+	}
 
-        //System.out.println("isMethodEqual " + ref.getMethodName());
+	//System.out.println("isMethodEqual " + ref.getMethodName());
 
-        if (!isMethodVisibilityAcceptable(ref, method)) {
-            return false;
-        }
+	if (!isMethodVisibilityAcceptable(ref, method)) {
+	    return false;
+	}
 
-        if (!isMethodReturnType(ref, method.getReturnType())) {
-            return false;
-        }
+	if (!isMethodReturnType(ref, method.getReturnType())) {
+	    return false;
+	}
 
-        return isMethodArgumentListEqual(ref, method);
+	return isMethodArgumentListEqual(ref, method);
     }
 
     private static boolean isMethodVisibilityAcceptable(ASTMethodDeclaration ref, Method method) {
 
-        if ((method.getModifiers() & Modifier.FINAL) != 0) {
-            // a final method cannot be overridden
-            return false;
-        }
+	if ((method.getModifiers() & Modifier.FINAL) != 0) {
+	    // a final method cannot be overridden
+	    return false;
+	}
 
-        if ((method.getModifiers() & Modifier.PRIVATE) != 0) {
-            // a private method cannot be overridden
-            return false;
-        }
+	if ((method.getModifiers() & Modifier.PRIVATE) != 0) {
+	    // a private method cannot be overridden
+	    return false;
+	}
 
-        if ((method.getModifiers() & Modifier.FINAL) != 0) {
-            // a final method cannot be overridden
-            return false;
-        }
+	if ((method.getModifiers() & Modifier.FINAL) != 0) {
+	    // a final method cannot be overridden
+	    return false;
+	}
 
-        if (ref.isPackagePrivate()) {
+	if (ref.isPackagePrivate()) {
 
-            String refPackage = getPackageName(ref);
-            String methodPackage = method.getDeclaringClass().getPackage().getName();
+	    String refPackage = getPackageName(ref);
+	    String methodPackage = method.getDeclaringClass().getPackage().getName();
 
-            if (!refPackage.equals(methodPackage)) {
-                // package private methods must be in the same package
-                return false;
-            }
-        }
+	    if (!refPackage.equals(methodPackage)) {
+		// package private methods must be in the same package
+		return false;
+	    }
+	}
 
-        return true;
+	return true;
     }
 
     private static boolean isParameterOrReturnType(AbstractJavaNode node, Type type, boolean arrayType) {
 
-        //System.out.println("isParameterOrReturnType " + getNodeOuterClassName(node));
+	//System.out.println("isParameterOrReturnType " + getNodeOuterClassName(node));
 
-        ASTPrimitiveType primitiveType = node.getFirstDescendantOfType(ASTPrimitiveType.class);
-        ASTReferenceType refType = node.getFirstDescendantOfType(ASTReferenceType.class);
-        if (primitiveType != null) {
+	ASTPrimitiveType primitiveType = node.getFirstDescendantOfType(ASTPrimitiveType.class);
+	ASTReferenceType refType = node.getFirstDescendantOfType(ASTReferenceType.class);
+	if (primitiveType != null) {
 
-            if (arrayType) {
+	    if (arrayType) {
 
-                // ref type + prim type = primitive array
-                return isTypeEqual(Array.newInstance(primitiveType.getType(), 0).getClass(), type);
-            }
+		// ref type + prim type = primitive array
+		return isTypeEqual(Array.newInstance(primitiveType.getType(), 0).getClass(), type);
+	    }
 
-            if (isTypeEqual(primitiveType.getType(), type)) {
-                return true;
-            }
-        }
+	    if (isTypeEqual(primitiveType.getType(), type)) {
+		return true;
+	    }
+	}
 
-        if (refType != null) {
+	if (refType != null) {
 
-            if (refType.getType() == null) {
+	    if (refType.getType() == null) {
 
-                // generics don't get a type assigned by PMD
+		// generics don't get a type assigned by PMD
 
-                ASTClassOrInterfaceType classType = refType.getFirstChildOfType(ASTClassOrInterfaceType.class);
-                List<Class<?>> generics = resolveGenericType(classType.getImage(), node);
-                for (Class<?> generic : generics) {
+		ASTClassOrInterfaceType classType = refType.getFirstChildOfType(ASTClassOrInterfaceType.class);
+		List<Class<?>> generics = resolveGenericType(classType.getImage(), node);
+		for (Class<?> generic : generics) {
 
-                    if (refType.isArray()) {
+		    if (refType.isArray()) {
 
-                        if (isTypeEqual(Array.newInstance(generic, 0).getClass(), type)) {
-                            return true;
-                        }
+			if (isTypeEqual(Array.newInstance(generic, 0).getClass(), type)) {
+			    return true;
+			}
 
-                    } else
-                    if (isTypeEqual(generic, type)) {
-                        return true;
-                    }
-                }
+		    } else if (isTypeEqual(generic, type)) {
+			return true;
+		    }
+		}
 
-            } else
-            if (arrayType) {
-                return isTypeEqual(Array.newInstance(refType.getType(), 0).getClass(), type);
-            } else
-            if (isTypeEqual(refType.getType(), type)) {
-                return true;
-            }
-        }
+	    } else if (arrayType) {
+		
+		return isTypeEqual(Array.newInstance(refType.getType(), 0).getClass(), type);
+		
+	    } else if (isTypeEqual(refType.getType(), type)) {
+		
+		return true;
+	    }
+	}
 
-        return false;
+	return false;
     }
 
     private static boolean isTypeEqual(Class<?> ref, Type type) {
 
-        if (type instanceof TypeVariable<?>) {
+	if (type instanceof TypeVariable<?>) {
 
-            TypeVariable<?> typeVariable = (TypeVariable<?>)type;
-            if (typeVariable.getBounds().length > 0) {
+	    TypeVariable<?> typeVariable = (TypeVariable<?>) type;
+	    if (typeVariable.getBounds().length > 0) {
 
-                for (Type bound : typeVariable.getBounds()) {
+		for (Type bound : typeVariable.getBounds()) {
 
-                    if (ClassUtils.isAssignable((Class<?>)bound, ref, true) || ClassUtils.isAssignable(ref, (Class<?>)bound)) {
-                        return true;
-                    }
-                }
-            } else {
+		    if (isTypeEqual(ref, bound)) {
+			return true;
+		    }
+		}
+	    } else {
 
-                // type is unbounded generic and can be replaced with ref
-                return true;
-            }
-        } else
-        if (type instanceof GenericArrayType) {
+		// type is unbounded generic and can be replaced with ref
+		return true;
+	    }
+	} else if (type instanceof GenericArrayType) {
 
-            GenericArrayType arrayType = (GenericArrayType)type;
-            return ref.isArray() && isTypeEqual(ref.getComponentType(), arrayType.getGenericComponentType());
+	    GenericArrayType arrayType = (GenericArrayType) type;
+	    return ref.isArray() && isTypeEqual(ref.getComponentType(), arrayType.getGenericComponentType());
 
-        } else
-        if (type instanceof ParameterizedType) {
+	} else if (type instanceof ParameterizedType) {
 
-            ParameterizedType parameterizedType = (ParameterizedType)type;
-            return parameterizedType.getRawType() == ref; // NOPMD intentional
-        } else
-        if (type instanceof Class<?>) {
+	    ParameterizedType parameterizedType = (ParameterizedType) type;
+	    return parameterizedType.getRawType() == ref; // NOPMD intentional
+	    
+	} else if (type instanceof Class<?>) {
 
-            return ref == type; // NOPMD intentional
-        }
+	    if (ClassUtils.isAssignable(ref, (Class<?>) type)) {
+		return true;
+	    }
 
-        System.err.println("Unhandled Type implementation " + type.getClass());
+	    return ref == type; // NOPMD intentional
+	}
 
-        return false;
+	System.err.println("Unhandled Type implementation " + type.getClass());
+
+	return false;
     }
 
     private static List<Class<?>> resolveGenericType(String name, AbstractJavaNode node) {
 
-        List<Class<?>> classes = new LinkedList<Class<?>>();
+	List<Class<?>> classes = new LinkedList<Class<?>>();
 
-        while (node != null) {
+	while (node != null) {
 
-            ASTTypeParameters parameters = node.getFirstChildOfType(ASTTypeParameters.class);
-            if (parameters != null) {
+	    ASTTypeParameters parameters = node.getFirstChildOfType(ASTTypeParameters.class);
+	    if (parameters != null) {
 
-                for (int i=0; i<parameters.jjtGetNumChildren(); i++) {
+		for (int i = 0; i < parameters.jjtGetNumChildren(); i++) {
 
-                    ASTTypeParameter parameter = (ASTTypeParameter)parameters.jjtGetChild(i);
-                    if (!parameter.getImage().equals(name)) {
-                        continue;
-                    }
+		    ASTTypeParameter parameter = (ASTTypeParameter) parameters.jjtGetChild(i);
+		    if (!parameter.getImage().equals(name)) {
+			continue;
+		    }
 
-                    ASTTypeBound bound = parameter.getFirstChildOfType(ASTTypeBound.class);
-                    if (bound != null) {
+		    ASTTypeBound bound = parameter.getFirstChildOfType(ASTTypeBound.class);
+		    if (bound != null) {
 
-                        for (int j=0; j<bound.jjtGetNumChildren(); j++) {
+			for (int j = 0; j < bound.jjtGetNumChildren(); j++) {
 
-                            ASTClassOrInterfaceType type = (ASTClassOrInterfaceType)bound.jjtGetChild(j);
+			    ASTClassOrInterfaceType type = (ASTClassOrInterfaceType) bound.jjtGetChild(j);
 
-                            // type erasure, becomes bounded type
-                            Class<?> clazz = ASTResolver.resolveType(node, type.getImage());
-                            if (clazz == null) {
-                                System.err.println("Could not resolve generic type bound '" + bound.getImage() + "'");
-                                return null;
-                            }
+			    // type erasure, becomes bounded type
+			    Class<?> clazz = ASTResolver.resolveType(node, type.getImage());
+			    if (clazz == null) {
+				System.err.println("Could not resolve generic type bound '" + bound.getImage() + "'");
+				return null;
+			    }
 
-                            classes.add(clazz);
-                        }
+			    classes.add(clazz);
+			}
 
-                    } else {
-                        // type erasure, unbounded becomes Object
-                        classes.add(Object.class);
-                    }
+		    } else {
+			// type erasure, unbounded becomes Object
+			classes.add(Object.class);
+		    }
 
-                    // found the type
-                    break; // NOPMD
-                }
-            }
+		    // found the type
+		    break; // NOPMD
+		}
+	    }
 
-            node = (AbstractJavaNode) node.jjtGetParent();
-        }
+	    node = (AbstractJavaNode) node.jjtGetParent();
+	}
 
-        return classes;
+	return classes;
     }
 
     private static boolean isMethodReturnType(ASTMethodDeclaration methodDecl, Class<?> clazz) {
 
-        ASTResultType resultType = methodDecl.getFirstChildOfType(ASTResultType.class);
-        if (resultType.jjtGetNumChildren() == 0) {
-            return void.class == clazz;
-        }
+	ASTResultType resultType = methodDecl.getFirstChildOfType(ASTResultType.class);
+	if (resultType.jjtGetNumChildren() == 0) {
+	    return void.class == clazz;
+	}
 
-        return isParameterOrReturnType(resultType, clazz, resultType.returnsArray());
+	return isParameterOrReturnType(resultType, clazz, resultType.returnsArray());
     }
 
     /**
@@ -495,21 +499,21 @@ public final class ASTUtil {
      */
     public static boolean isMethodArgumentListEqual(ASTMethodDeclaration ref, Method method) {
 
-        List<ASTFormalParameter> refParams = getMethodArgs(ref);
+	List<ASTFormalParameter> refParams = getMethodArgs(ref);
 
-        if (refParams.size() != method.getParameterTypes().length) {
-            return false;
-        }
+	if (refParams.size() != method.getParameterTypes().length) {
+	    return false;
+	}
 
-        for (int i=0; i<refParams.size(); i++) {
+	for (int i = 0; i < refParams.size(); i++) {
 
-            ASTFormalParameter parameter = refParams.get(i);
-            if (!isParameterOrReturnType(refParams.get(i), method.getGenericParameterTypes()[i], parameter.isArray())) {
-                return false;
-            }
-        }
+	    ASTFormalParameter parameter = refParams.get(i);
+	    if (!isParameterOrReturnType(refParams.get(i), method.getGenericParameterTypes()[i], parameter.isArray())) {
+		return false;
+	    }
+	}
 
-        return true;
+	return true;
     }
 
     /**
@@ -523,11 +527,11 @@ public final class ASTUtil {
      */
     public static String getMethodArgumentName(ASTFormalParameter arg) {
 
-        ASTVariableDeclaratorId varDecl = arg.getFirstChildOfType(ASTVariableDeclaratorId.class);
-        if (varDecl != null && varDecl.getNameDeclaration() != null) {
-            return varDecl.getNameDeclaration().getName();
-        }
-        return null;
+	ASTVariableDeclaratorId varDecl = arg.getFirstChildOfType(ASTVariableDeclaratorId.class);
+	if (varDecl != null && varDecl.getNameDeclaration() != null) {
+	    return varDecl.getNameDeclaration().getName();
+	}
+	return null;
     }
 
     /**
@@ -541,9 +545,9 @@ public final class ASTUtil {
      */
     public static List<ASTFormalParameter> getMethodArgs(ASTMethodDeclaration method) {
 
-        ASTMethodDeclarator decl = method.getFirstChildOfType(ASTMethodDeclarator.class);
-        ASTFormalParameters parameters = decl.getFirstChildOfType(ASTFormalParameters.class);
-        return parameters.findChildrenOfType(ASTFormalParameter.class);
+	ASTMethodDeclarator decl = method.getFirstChildOfType(ASTMethodDeclarator.class);
+	ASTFormalParameters parameters = decl.getFirstChildOfType(ASTFormalParameters.class);
+	return parameters.findChildrenOfType(ASTFormalParameter.class);
     }
 
     /**
@@ -557,8 +561,8 @@ public final class ASTUtil {
      */
     public static List<ASTFormalParameter> getConstructorArgs(ASTConstructorDeclaration ctor) {
 
-        ASTFormalParameters parameters = ctor.getFirstChildOfType(ASTFormalParameters.class);
-        return parameters.findChildrenOfType(ASTFormalParameter.class);
+	ASTFormalParameters parameters = ctor.getFirstChildOfType(ASTFormalParameters.class);
+	return parameters.findChildrenOfType(ASTFormalParameter.class);
     }
 
     /**
@@ -572,31 +576,31 @@ public final class ASTUtil {
      */
     public static List<ASTAnnotation> getMethodAnnotations(ASTMethodDeclaration method) {
 
-        ASTClassOrInterfaceBodyDeclaration body = method.getFirstParentOfType(ASTClassOrInterfaceBodyDeclaration.class);
+	ASTClassOrInterfaceBodyDeclaration body = method.getFirstParentOfType(ASTClassOrInterfaceBodyDeclaration.class);
 
-        List<ASTAnnotation> annotations = new LinkedList<ASTAnnotation>();
-        for (int i=0; i<body.jjtGetNumChildren(); i++) {
+	List<ASTAnnotation> annotations = new LinkedList<ASTAnnotation>();
+	for (int i = 0; i < body.jjtGetNumChildren(); i++) {
 
-            Node child = body.jjtGetChild(i);
-            if (child != method) { // NOPMD identity comparison
-                continue;
-            }
+	    Node child = body.jjtGetChild(i);
+	    if (child != method) { // NOPMD identity comparison
+		continue;
+	    }
 
-            // found our method node in parent, backtrack as long as we find annotations
-            while (--i >= 0) {
+	    // found our method node in parent, backtrack as long as we find annotations
+	    while (--i >= 0) {
 
-                Node sibling = body.jjtGetChild(i);
-                if (!(sibling instanceof ASTAnnotation)) {
-                    break;
-                }
+		Node sibling = body.jjtGetChild(i);
+		if (!(sibling instanceof ASTAnnotation)) {
+		    break;
+		}
 
-                annotations.add((ASTAnnotation)sibling);
-            }
+		annotations.add((ASTAnnotation) sibling);
+	    }
 
-            break; // NOPMD alternative would be deeper nesting
-        }
+	    break; // NOPMD alternative would be deeper nesting
+	}
 
-        return annotations;
+	return annotations;
     }
 
     /**
@@ -610,15 +614,15 @@ public final class ASTUtil {
      */
     public static boolean hasOverrideAnnotation(ASTMethodDeclaration method) {
 
-        List<ASTAnnotation> annotations = getMethodAnnotations(method);
-        for (ASTAnnotation annotation : annotations) {
+	List<ASTAnnotation> annotations = getMethodAnnotations(method);
+	for (ASTAnnotation annotation : annotations) {
 
-            ASTName name = annotation.getFirstDescendantOfType(ASTName.class);
-            if (name.getImage().equals("Override")) {
-                return true;
-            }
-        }
-        return false;
+	    ASTName name = annotation.getFirstDescendantOfType(ASTName.class);
+	    if (name.getImage().equals("Override")) {
+		return true;
+	    }
+	}
+	return false;
     }
 
     /**
@@ -628,24 +632,24 @@ public final class ASTUtil {
      */
     public enum SingletonType {
 
-        /**
-         *
-         * <p>Not a singleton.</p>
-         *
-         */
-        NONE,
-        /**
-         *
-         * <p>A eager singleton.</p>
-         *
-         */
-        EAGER,
-        /**
-         *
-         * <p>A lazy-init singleton.</p>
-         *
-         */
-        LAZY
+	/**
+	 *
+	 * <p>Not a singleton.</p>
+	 *
+	 */
+	NONE,
+	/**
+	 *
+	 * <p>A eager singleton.</p>
+	 *
+	 */
+	EAGER,
+	/**
+	 *
+	 * <p>A lazy-init singleton.</p>
+	 *
+	 */
+	LAZY
     }
 
     /**
@@ -662,50 +666,50 @@ public final class ASTUtil {
      */
     public static SingletonType guessIntendedSingletonType(ASTClassOrInterfaceDeclaration classDecl) {
 
-        if (classDecl.isInterface()) {
-            // interfaces cannot be singletons
-            return SingletonType.NONE;
-        }
+	if (classDecl.isInterface()) {
+	    // interfaces cannot be singletons
+	    return SingletonType.NONE;
+	}
 
-        boolean staticMemberFound = false;
-        boolean staticMemberHasNewInitializer = false;
-        boolean staticAccessorFound = false;
+	boolean staticMemberFound = false;
+	boolean staticMemberHasNewInitializer = false;
+	boolean staticAccessorFound = false;
 
-        ASTClassOrInterfaceBody body = classDecl.getFirstChildOfType(ASTClassOrInterfaceBody.class);
-        for (int i=0; i<body.jjtGetNumChildren(); i++) {
+	ASTClassOrInterfaceBody body = classDecl.getFirstChildOfType(ASTClassOrInterfaceBody.class);
+	for (int i = 0; i < body.jjtGetNumChildren(); i++) {
 
-            Node child = body.jjtGetChild(i);
-            if (!(child instanceof ASTClassOrInterfaceBodyDeclaration)) {
-                continue;
-            }
+	    Node child = body.jjtGetChild(i);
+	    if (!(child instanceof ASTClassOrInterfaceBodyDeclaration)) {
+		continue;
+	    }
 
-            ASTClassOrInterfaceBodyDeclaration bodyDecl = (ASTClassOrInterfaceBodyDeclaration)child;
+	    ASTClassOrInterfaceBodyDeclaration bodyDecl = (ASTClassOrInterfaceBodyDeclaration) child;
 
-            ASTFieldDeclaration fieldDecl = bodyDecl.getFirstChildOfType(ASTFieldDeclaration.class);
-            if (fieldDecl != null && fieldDecl.isStatic() && fieldDecl.getType() == classDecl.getType()) {
+	    ASTFieldDeclaration fieldDecl = bodyDecl.getFirstChildOfType(ASTFieldDeclaration.class);
+	    if (fieldDecl != null && fieldDecl.isStatic() && fieldDecl.getType() == classDecl.getType()) {
 
-                staticMemberFound = true;
+		staticMemberFound = true;
 
-                ASTAllocationExpression allocation = fieldDecl.getFirstDescendantOfType(ASTAllocationExpression.class);
-                if (allocation != null && allocation.getType() == classDecl.getType()) {
-                    staticMemberHasNewInitializer = true;
-                }
-                continue;
-            }
+		ASTAllocationExpression allocation = fieldDecl.getFirstDescendantOfType(ASTAllocationExpression.class);
+		if (allocation != null && allocation.getType() == classDecl.getType()) {
+		    staticMemberHasNewInitializer = true;
+		}
+		continue;
+	    }
 
-            ASTMethodDeclaration methodDecl = bodyDecl.getFirstChildOfType(ASTMethodDeclaration.class);
-            if (methodDecl != null && isSingletonAccessor(methodDecl)) {
+	    ASTMethodDeclaration methodDecl = bodyDecl.getFirstChildOfType(ASTMethodDeclaration.class);
+	    if (methodDecl != null && isSingletonAccessor(methodDecl)) {
 
-                staticAccessorFound = true;
-            }
-        }
+		staticAccessorFound = true;
+	    }
+	}
 
-        if (staticMemberFound && staticAccessorFound) {
+	if (staticMemberFound && staticAccessorFound) {
 
-            return staticMemberHasNewInitializer ? SingletonType.EAGER : SingletonType.LAZY;
-        }
+	    return staticMemberHasNewInitializer ? SingletonType.EAGER : SingletonType.LAZY;
+	}
 
-        return SingletonType.NONE;
+	return SingletonType.NONE;
     }
 
     /**
@@ -719,20 +723,20 @@ public final class ASTUtil {
      */
     public static boolean isSingletonAccessor(ASTMethodDeclaration methodDecl) {
 
-        Class<?> clazz = getNodeClass(methodDecl);
+	Class<?> clazz = getNodeClass(methodDecl);
 
-        if (!methodDecl.isStatic()) {
-            // method isn't static, not a singleton accessor
-            return false;
-        }
+	if (!methodDecl.isStatic()) {
+	    // method isn't static, not a singleton accessor
+	    return false;
+	}
 
-        if (!isMethodReturnType(methodDecl, clazz)) {
-            // wrong return type, not a singleton accessor
-            return false;
-        }
+	if (!isMethodReturnType(methodDecl, clazz)) {
+	    // wrong return type, not a singleton accessor
+	    return false;
+	}
 
-        // method may not take any arguments
-        return ASTUtil.getMethodArgs(methodDecl).isEmpty();
+	// method may not take any arguments
+	return ASTUtil.getMethodArgs(methodDecl).isEmpty();
     }
 
     /**
@@ -746,8 +750,9 @@ public final class ASTUtil {
      */
     public static String getPackageName(AbstractJavaNode node) {
 
-        ASTCompilationUnit cunit = node.getFirstParentOfType(ASTCompilationUnit.class);
-        return (cunit != null && cunit.getPackageDeclaration() != null) ? cunit.getPackageDeclaration().getPackageNameImage() : UNRESOLVED_NAME;
+	ASTCompilationUnit cunit = node.getFirstParentOfType(ASTCompilationUnit.class);
+	return (cunit != null && cunit.getPackageDeclaration() != null) ? cunit.getPackageDeclaration()
+		.getPackageNameImage() : UNRESOLVED_NAME;
     }
 
     /**
@@ -762,20 +767,20 @@ public final class ASTUtil {
      */
     public static Set<String> getNodeImports(AbstractJavaNode node) {
 
-        Set<String> imports = new HashSet<String>();
-        ASTCompilationUnit unit = node.getFirstParentOfType(ASTCompilationUnit.class);
-        for (int i=0; i<unit.jjtGetNumChildren(); i++) {
+	Set<String> imports = new HashSet<String>();
+	ASTCompilationUnit unit = node.getFirstParentOfType(ASTCompilationUnit.class);
+	for (int i = 0; i < unit.jjtGetNumChildren(); i++) {
 
-            Node child = unit.jjtGetChild(i);
-            if (child instanceof ASTImportDeclaration) {
+	    Node child = unit.jjtGetChild(i);
+	    if (child instanceof ASTImportDeclaration) {
 
-                ASTImportDeclaration importDecl = (ASTImportDeclaration) child;
-                imports.add(importDecl.getImportedName());
-                imports.add(importDecl.getPackageName());
-            }
-        }
+		ASTImportDeclaration importDecl = (ASTImportDeclaration) child;
+		imports.add(importDecl.getImportedName());
+		imports.add(importDecl.getPackageName());
+	    }
+	}
 
-        return imports;
+	return imports;
     }
 
     /**
@@ -794,31 +799,30 @@ public final class ASTUtil {
      */
     public static String getNodeClassName(AbstractJavaNode node) {
 
-        StringBuilder fqn = new StringBuilder();
+	StringBuilder fqn = new StringBuilder();
 
-        ASTCompilationUnit cunit = node.getFirstParentOfType(ASTCompilationUnit.class);
-        ASTPackageDeclaration packageDecl = cunit.getFirstChildOfType(ASTPackageDeclaration.class);
-        if (packageDecl != null) {
-            fqn.append(packageDecl.getPackageNameImage());
-            fqn.append('.');
-        }
+	ASTCompilationUnit cunit = node.getFirstParentOfType(ASTCompilationUnit.class);
+	ASTPackageDeclaration packageDecl = cunit.getFirstChildOfType(ASTPackageDeclaration.class);
+	if (packageDecl != null) {
+	    fqn.append(packageDecl.getPackageNameImage());
+	    fqn.append('.');
+	}
 
-        ClassScope classScope = null;
-        if (node.getScope() instanceof MethodScope) {
+	ClassScope classScope = null;
+	if (node.getScope() instanceof MethodScope) {
 
-            MethodScope scope = (MethodScope)node.getScope();
-            classScope = (ClassScope)scope.getParent();
-        } else
-        if (node.getScope() instanceof ClassScope) {
+	    MethodScope scope = (MethodScope) node.getScope();
+	    classScope = (ClassScope) scope.getParent();
+	} else if (node.getScope() instanceof ClassScope) {
 
-            classScope = (ClassScope)node.getScope();
-        }
+	    classScope = (ClassScope) node.getScope();
+	}
 
-        if (classScope != null) {
-            fqn.append(classScope.getClassName());
-        }
+	if (classScope != null) {
+	    fqn.append(classScope.getClassName());
+	}
 
-        return fqn.toString();
+	return fqn.toString();
     }
 
     /**
@@ -836,32 +840,32 @@ public final class ASTUtil {
      */
     public static String getNodeOuterClassName(AbstractJavaNode node) {
 
-        StringBuilder fqn = new StringBuilder();
+	StringBuilder fqn = new StringBuilder();
 
-        ASTCompilationUnit cunit = node.getFirstParentOfType(ASTCompilationUnit.class);
-        ASTPackageDeclaration packageDecl = cunit.getFirstChildOfType(ASTPackageDeclaration.class);
-        if (packageDecl != null) {
-            fqn.append(packageDecl.getPackageNameImage());
-            fqn.append('.');
-        }
+	ASTCompilationUnit cunit = node.getFirstParentOfType(ASTCompilationUnit.class);
+	ASTPackageDeclaration packageDecl = cunit.getFirstChildOfType(ASTPackageDeclaration.class);
+	if (packageDecl != null) {
+	    fqn.append(packageDecl.getPackageNameImage());
+	    fqn.append('.');
+	}
 
-        // find the topmost class scope
-        Scope scope = node.getScope();
-        ClassScope classScope = (node.getScope() instanceof ClassScope) ? ((ClassScope)node.getScope()) : null;
-        while (scope.getParent() != null) {
+	// find the topmost class scope
+	Scope scope = node.getScope();
+	ClassScope classScope = (node.getScope() instanceof ClassScope) ? ((ClassScope) node.getScope()) : null;
+	while (scope.getParent() != null) {
 
-            scope = scope.getParent();
+	    scope = scope.getParent();
 
-            if (scope instanceof ClassScope) {
-                classScope = (ClassScope) scope;
-            }
-        }
+	    if (scope instanceof ClassScope) {
+		classScope = (ClassScope) scope;
+	    }
+	}
 
-        if (classScope != null) {
-            fqn.append(classScope.getClassName());
-        }
+	if (classScope != null) {
+	    fqn.append(classScope.getClassName());
+	}
 
-        return fqn.toString();
+	return fqn.toString();
     }
 
     /**
@@ -881,21 +885,21 @@ public final class ASTUtil {
     @SuppressWarnings("unchecked")
     public static <T extends Node> T findParentOfType(Node node, Class<T> parentClass, Class<? extends Node> stopAt) {
 
-        Node parent = node.jjtGetParent();
-        while (parent != null) {
+	Node parent = node.jjtGetParent();
+	while (parent != null) {
 
-            if (parent.getClass() == stopAt) {
-                break;
-            }
+	    if (parent.getClass() == stopAt) {
+		break;
+	    }
 
-            if (parent.getClass() == parentClass) {
-                return (T)parent;
-            }
+	    if (parent.getClass() == parentClass) {
+		return (T) parent;
+	    }
 
-            parent = parent.jjtGetParent();
-        }
+	    parent = parent.jjtGetParent();
+	}
 
-        return null;
+	return null;
     }
 
     /**
@@ -912,30 +916,32 @@ public final class ASTUtil {
      * @return A list with nodes of type {@code childClass}.
      *
      */
-    public static <T extends Node> List<T> findDescendantsOfType(Node node, Class<T> childClass, Class<? extends Node> stopAt) {
+    public static <T extends Node> List<T> findDescendantsOfType(Node node, Class<T> childClass,
+	    Class<? extends Node> stopAt) {
 
-        List<T> descendants = new LinkedList<T>();
-        collectDescendantsOfType(node, childClass, stopAt, descendants);
-        return descendants;
+	List<T> descendants = new LinkedList<T>();
+	collectDescendantsOfType(node, childClass, stopAt, descendants);
+	return descendants;
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> void collectDescendantsOfType(Node node, Class<T> childClass, Class<?> stopAt, List<T> descendants) {
+    private static <T> void collectDescendantsOfType(Node node, Class<T> childClass, Class<?> stopAt,
+	    List<T> descendants) {
 
-        for (int i=0; i<node.jjtGetNumChildren(); i++) {
+	for (int i = 0; i < node.jjtGetNumChildren(); i++) {
 
-            Node child = node.jjtGetChild(i);
+	    Node child = node.jjtGetChild(i);
 
-            if (child.getClass() == childClass) {
+	    if (child.getClass() == childClass) {
 
-                descendants.add((T)child);
-            }
+		descendants.add((T) child);
+	    }
 
-            if (child.getClass() != stopAt) {
+	    if (child.getClass() != stopAt) {
 
-                collectDescendantsOfType(child, childClass, stopAt, descendants);
-            }
-        }
+		collectDescendantsOfType(child, childClass, stopAt, descendants);
+	    }
+	}
     }
 
     /**
@@ -952,22 +958,24 @@ public final class ASTUtil {
      * @return A list with nodes of type {@code childClass}.
      *
      */
-    public static <T extends Node> T getFirstDescendantOfType(Node node, Class<T> childClass, Class<? extends Node> stopAt) {
+    @SuppressWarnings("unchecked")
+    public static <T extends Node> T getFirstDescendantOfType(Node node, Class<T> childClass,
+	    Class<? extends Node> stopAt) {
 
-        for (int i=0; i<node.jjtGetNumChildren(); i++) {
+	for (int i = 0; i < node.jjtGetNumChildren(); i++) {
 
-            Node child = node.jjtGetChild(i);
+	    Node child = node.jjtGetChild(i);
 
-            if (child.getClass() == stopAt) {
-                return null;
-            }
+	    if (child.getClass() == stopAt) {
+		return null;
+	    }
 
-            if (child.getClass() == childClass) {
-                return (T)child;
-            }
-        }
+	    if (child.getClass() == childClass) {
+		return (T) child;
+	    }
+	}
 
-        return null;
+	return null;
     }
 
     /**
@@ -980,54 +988,50 @@ public final class ASTUtil {
      */
     public static void dumpTree(Node node, PrintStream writer) {
 
-        dumpTree(node, writer, 0);
+	dumpTree(node, writer, 0);
     }
 
     private static void dumpTree(Node node, PrintStream writer, int indent) {
 
-        for (int i=0; i<indent; i++) {
-            writer.print(' ');
-        }
+	for (int i = 0; i < indent; i++) {
+	    writer.print(' ');
+	}
 
-        writer.print("Node " + node);
+	writer.print("Node " + node);
 
-        if (node instanceof ASTFieldDeclaration) {
+	if (node instanceof ASTFieldDeclaration) {
 
-            writer.print(" " + ((ASTFieldDeclaration) node).getVariableName());
-        } else
-        if (node instanceof ASTConstructorDeclaration) {
+	    writer.print(" " + ((ASTFieldDeclaration) node).getVariableName());
+	} else if (node instanceof ASTConstructorDeclaration) {
 
-            writer.print(" " + getNodeClassName((ASTConstructorDeclaration) node));
-        } else
-        if (node instanceof ASTMethodDeclaration) {
+	    writer.print(" " + getNodeClassName((ASTConstructorDeclaration) node));
+	} else if (node instanceof ASTMethodDeclaration) {
 
-            writer.print(" " + ((ASTMethodDeclaration) node).getMethodName());
-        } else
-        if (node instanceof ASTClassOrInterfaceDeclaration) {
+	    writer.print(" " + ((ASTMethodDeclaration) node).getMethodName());
+	} else if (node instanceof ASTClassOrInterfaceDeclaration) {
 
-            writer.print(" " + getNodeClassName((ASTClassOrInterfaceDeclaration) node));
-        } else
-        if (node instanceof ASTClassOrInterfaceType) {
+	    writer.print(" " + getNodeClassName((ASTClassOrInterfaceDeclaration) node));
+	} else if (node instanceof ASTClassOrInterfaceType) {
 
-            writer.print(" type: " + ((ASTClassOrInterfaceType)node).getType() + " image: " + node.getImage());
-        }
-        
-        if (node instanceof AbstractJavaNode) {
-        	Comment comment = ((AbstractJavaNode)node).comment();
-        	if (comment != null) {
-        		String text =  comment.getImage().replace('\n', ' ');
-        		if (text.length() > 20) {
-        			text = text.substring(0, 20) + " ...";
-        		}
-        		writer.print(" comment '" + text + "'");
-        	}
-        }
+	    writer.print(" type: " + ((ASTClassOrInterfaceType) node).getType() + " image: " + node.getImage());
+	}
 
-        writer.println();
+	if (node instanceof AbstractJavaNode) {
+	    Comment comment = ((AbstractJavaNode) node).comment();
+	    if (comment != null) {
+		String text = comment.getImage().replace('\n', ' ');
+		if (text.length() > 20) {
+		    text = text.substring(0, 20) + " ...";
+		}
+		writer.print(" comment '" + text + "'");
+	    }
+	}
 
-        for (int i=0; i<node.jjtGetNumChildren(); i++) {
+	writer.println();
 
-            dumpTree(node.jjtGetChild(i), writer, indent + 1);
-        }
+	for (int i = 0; i < node.jjtGetNumChildren(); i++) {
+
+	    dumpTree(node.jjtGetChild(i), writer, indent + 1);
+	}
     }
 }
