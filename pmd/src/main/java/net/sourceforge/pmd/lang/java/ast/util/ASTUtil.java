@@ -41,7 +41,6 @@ import net.sourceforge.pmd.lang.java.ast.ASTVariableDeclaratorId;
 import net.sourceforge.pmd.lang.java.ast.AbstractJavaNode;
 import net.sourceforge.pmd.lang.java.ast.Comment;
 import net.sourceforge.pmd.lang.java.symboltable.ClassScope;
-import net.sourceforge.pmd.lang.java.symboltable.MethodScope;
 import net.sourceforge.pmd.lang.java.typeresolution.ASTResolver;
 import net.sourceforge.pmd.lang.symboltable.Scope;
 
@@ -799,30 +798,31 @@ public final class ASTUtil {
      */
     public static String getNodeClassName(AbstractJavaNode node) {
 
-	StringBuilder fqn = new StringBuilder();
+        StringBuilder fqn = new StringBuilder();
 
-	ASTCompilationUnit cunit = node.getFirstParentOfType(ASTCompilationUnit.class);
-	ASTPackageDeclaration packageDecl = cunit.getFirstChildOfType(ASTPackageDeclaration.class);
-	if (packageDecl != null) {
-	    fqn.append(packageDecl.getPackageNameImage());
-	    fqn.append('.');
-	}
+        // walk to the topmost class scope, prepending (inner) classes
+        Scope scope = node.getScope();
+        while (scope != null) {
 
-	ClassScope classScope = null;
-	if (node.getScope() instanceof MethodScope) {
+            if (scope instanceof ClassScope) {
 
-	    MethodScope scope = (MethodScope) node.getScope();
-	    classScope = (ClassScope) scope.getParent();
-	} else if (node.getScope() instanceof ClassScope) {
+                if (fqn.length() > 0) {
+                    fqn.insert(0, '.');
+                }
+                fqn.insert(0, ((ClassScope)scope).getClassName());
+            }
 
-	    classScope = (ClassScope) node.getScope();
-	}
+            scope = scope.getParent();
+        }
 
-	if (classScope != null) {
-	    fqn.append(classScope.getClassName());
-	}
+        ASTCompilationUnit cunit = node.getFirstParentOfType(ASTCompilationUnit.class);
+        ASTPackageDeclaration packageDecl = cunit.getFirstChildOfType(ASTPackageDeclaration.class);
+        if (packageDecl != null) {
+            fqn.insert(0, '.');
+            fqn.insert(0, packageDecl.getPackageNameImage());
+        }
 
-	return fqn.toString();
+        return fqn.toString();
     }
 
     /**
